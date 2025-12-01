@@ -3,7 +3,8 @@
 #Start running the script and start counting t0
 #While t-t0<10min: run step 1
 #If t-t0>10min: run step 2
-#Perform failure test after step 1 and step 2. This will compare vddd, iddd, vdda, idda and pedestal of the last baseline file saved
+#Perform failure test after step 1 and step 2. This will compare vddd, iddd, vdda, idda and pedestal of the designated
+#baseline file (which should be the first one)
 #Create a new subdirectory for each week to save data, once it becomes 7 days after initial day
 
 
@@ -17,15 +18,8 @@ echo -e "Starting longevity test script.\nCurrent day: $current_day. Current tim
 
 t0_h=${t0:0:2}
 t0_m=${t0:3:2}
-t0_minutes=$(($t0_h * 60 + $t0_m))
+t0_minutes=$((10#$t0_h * 60 + 10#$t0_m))
 echo -e "t0 in minutes: $t0_minutes\n"
-
-
-#Figure out how to subtract times in bash
-#Date in seconds date +%s, use this to subtract dates
-#date +%M to get the minutes of the hour, date +%H to get the hour, turn the hour into minutes and add minutes, compare to t0
-
-#Create subfolders for each week to save data, then manually upload that week's folder into NERSC
 
 while true; do 
 
@@ -35,17 +29,17 @@ while true; do
 
     current_time_h=${current_time:0:2}
     current_time_m=${current_time:3:2}
-    current_time_minutes=$(($current_time_h * 60 + $current_time_m))
+    current_time_minutes=$((10#$current_time_h * 60 + 10#$current_time_m))
     echo "Current time in minutes: $current_time_minutes"
 
-    time_difference=$(($current_time_minutes - $t0_minutes))
+    time_difference=$((10#$current_time_minutes - 10#$t0_minutes))
     echo "Current time - t0 difference in minutes: $time_difference"
 
     echo -e "Seconds since step 1 last finished: $SECONDS\n"
 
     # If current time t-t0<10min, run step 1
     # Main check
-    if [[ "$time_difference" -lt 10 ]]; then
+    if [[ 10#$time_difference -lt 10 ]]; then
 
         echo "Collect baseline with nominal voltages"
 
@@ -73,7 +67,7 @@ while true; do
 
     # If it has been more than 24 hours since step 1 last ended, run step 1 again
     # Backup check 86400
-    elif [[ $SECONDS -gt 86400 ]]; then
+    elif [[ 10#$SECONDS -gt 86400 ]]; then
 
         echo "Collect baseline with nominal voltages"
 
