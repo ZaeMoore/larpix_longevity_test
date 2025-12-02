@@ -6,12 +6,14 @@
 # is saved into a dictionary under ../output_data/baseline_YYYY_MM_DD.json
 #
 # How to run:
-# > python3 measure_baseline.py --daq 60 --outloc 3 --pacman_tile 1 2 3 4 5 6 7 8
+# > python3 measure_baseline.py --daq 60 --outloc 3 -p /path/to/output/files --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
 # 
 # Flag options:
 # --daq: Duration of data acquisition, in seconds
 # --outloc: Where do you want to save information? 1=influxdb, 2=dictionary, 3=both
+# -p, --pathoutfile: Path to where to save the .h5 files and dictionaries
 # --pacman_tile: List of pacman tiles, from 1-8
+# --baseline: Path to dictionary file with initial parameters
 
 import larpix
 import larpix.io 
@@ -49,7 +51,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--daq', default=600, type=int, help='Duration of data acquisition, in seconds')
     parser.add_argument('--outloc', type=int, help='Where do you want to save information? 1=influxdb, 2=dictionary, 3=both')
+    parser.add_argument('-p','--pathoutfile' type=str, required=True, help='Path to folder where to save the .h5 files and dictionaries')
     parser.add_argument('-l', '--pacman_tile', nargs='+', type=int, required=True, help='List of pacman tiles, from 1-8')
+    parser.add_argument('--baseline', type=str, help='Path to initial baseline information to perform failure test')
     args = parser.parse_args()
 
     # Connection to InfluxDB
@@ -100,11 +104,14 @@ if __name__ == '__main__':
 
         io_channel = ( int(tile) - 1) * 4 + 1
         d_io = d[d['io_channel'] == io_channel]
+
+        pedestal_avg = 0
         
         for channel_id in range(64):
             d_channel = d_io[d_io['channel_id'] == channel_id]
 
             mean_pedestal = np.mean(d_channel['dataword'])
+            pedestal_avg = pedestal_avg/64 
             packets = len(d_channel)
 
             if args.outloc == 2 or args.outloc == 3:
@@ -117,11 +124,52 @@ if __name__ == '__main__':
                 point = (Point("pacman_boards").field("packets", packets).tag("tile", tile).tag("channel_id", channel_id))
                 write_api.write(bucket=BUCKET, org=ORG, record=point)
 
+        if args.outloc == 2 or args.outloc == 3:
+            dict[f'tile{tile}']['pedestal']['avg'] = pedestal_avg
+
     if args.outloc == 2 or args.outloc == 3:
         # Save dictionary to a file
         timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-        with open(f'../output_data/baseline_{timestamp}.json', 'w') as f:
+        with open(f'{args.pathoutfile}/baseline_{timestamp}.json', 'w') as f:
             json.dump(dict, f, indent=4)
+
+    # --- Perform failure tests
+
+    # open dictionary with initial values
+    with open(args.baseline, 'r') as file:
+        d0 = json.load(file)
+
+    count_tiles = np.zeros(args.pacman_tile, dtype=int)
+
+    for tile in args.pacman_tile:
+
+        # retrieve initial information
+        idda_0 = d0[f'tile{tile}']['idda']
+        iddd_0 = d0[f'tile{tile}']['iddd']
+        v_pedestal_avg_0 = d0[f'tile{tile}']['pedestal']['avg']
+
+        # retrieve information collected now
+        idda_now = dict[f'tile{tile}']['idda']
+        iddd_now = dict[f'tile{tile}']['iddd']
+        v_pedestal_avg_now = dict[f'tile{tile}']['pedestal']['avg']
+
+        if idda_now > (1.5 * idda_0):
+            print('IDDA test: failed')
+        else: print('IDDA test: passed')
+        
+        if iddd>now > (1.5 * iddd_0):
+            print('IDDD test: failed')
+        else: print('IDDD test: passed')
+
+        if (v_pedestal_avg_now > (0.5 * v_pedestal_avg_0)) and (v_pedestal_avg_now < (1.5 * v_pedestal_avg_0)):
+            count_tile[tile] = 1
+        
+    if sum(count_tile)>6:
+        print(f'Pedestal test: failed | {count_tile}')
+    else: print('Pedestal test: passed')
+
+
+
 
     # Close InfluxDB client
     client.close()
