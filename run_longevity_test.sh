@@ -60,7 +60,7 @@ while true; do
         echo "Collect baseline with nominal voltages"
 
         # Set 8 samples to nominal voltage
-        #python3 power_on.py --vdda 51851 --pacman_tile 1,2,3,4,5,6,7,8
+        #python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243 --vddd 26214
         echo "Power on script with nominal voltages"
 
         # Set boards to pedestal mode
@@ -89,7 +89,7 @@ while true; do
         echo "Collect baseline with nominal voltages"
 
         # Set 8 samples to nominal voltage
-        #python3 power_on.py --vdda 51851 --pacman_tile 1,2,3,4,5,6,7,8
+        #python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243 --vddd 26214
         echo "Power on script with nominal voltages"
 
         # Set boards to pedestal mode
@@ -116,10 +116,8 @@ while true; do
         echo "Collect baseline with accelerated voltages"
 
         # If current time t-t0>10min, run step 2
-        # Set higher voltages, tile=1 is used as baseline with nominal voltage
-        #python3 power_on.py --pacman_tile 2,3 --vdda <3.75V> --vddd <1.8V>
-        #python3 power_on.py --pacman_tile 4,5 --vdda <4.38V> --vddd <2.10V>
-        #python3 power_on.py --pacman_tile 6,7,8 --vdda <4.5V> --vddd <2.40V>
+        # Set accelerated voltages, tile=1 is used as baseline with nominal voltage
+        #python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243,15729,15729,23593,23593,34079,34079,34079 --vddd 26214,30933,30933,35389,35389,40108,40108,40108
         echo "Power on script with accelerated voltages"
 
         # Set boards to pedestal mode
