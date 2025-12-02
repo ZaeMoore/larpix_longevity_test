@@ -3,10 +3,8 @@
 #Start running the script and start counting t0
 #While t-t0<10min: run step 1
 #If t-t0>10min: run step 2
-#Perform failure test after step 1 and step 2. This will compare vddd, iddd, vdda, idda and pedestal of the designated
-#baseline file (which should be the first one)
+#Perform failure test after step 1 and 2. This will compare vddd, iddd, vdda, idda and pedestal of the designated baseline file
 #Create a new subdirectory for each week to save data, once it becomes 7 days after initial day
-
 
 # Set initial day and time t0
 current_day=$(date +%Y-%m-%d)
@@ -21,8 +19,10 @@ t0_m=${t0:3:2}
 t0_minutes=$((10#$t0_h * 60 + 10#$t0_m))
 echo -e "t0 in minutes: $t0_minutes\n"
 
-w0_s=$(date +%s) #Initial time in seconds for week 0
-mkdir "su_cryolongevity_$(date +%Y-%m-%d)"
+# Initial time in seconds for week 0
+w0_s=$(date +%s)
+directory="su_cryolongevity_$(date +%Y-%m-%d)"
+mkdir $directory
 
 while true; do 
 
@@ -44,15 +44,13 @@ while true; do
     # Main check
     if [[ 10#$time_difference -lt 10.0 ]]; then
 
-        #A week in seconds: 604800
-        #When it's been 604800 seconds since initial time, create a new subdirectory for that week
-        #Reset week_0 time (in seconds) to current time
-        #
+        # If a week has passed since a subdirectory was last created for storing data, create a new one
         week_difference=$((10#$(date +%s) - 10#$w0_s))
         if [[ 10#$week_difference -gt 604800 ]]; then
-            w0_s=$(date +%s)
+            w0_s=$(date +%s) #Update week 0 time
             echo "Creating new subdirectory for the week"
-            mkdir "su_cryolongevity_$(date +%Y-%m-%d)"
+            directory="su_cryolongevity_$(date +%Y-%m-%d)"
+            mkdir $directory
 
         fi
 
@@ -67,14 +65,15 @@ while true; do
         echo "Pedestal mode script"
 
         # Run baseline collection script. 
-        # It collects vdda, idda, vddd, iddd and pedestal for all channels (daq=10min)
-        # outloc options: 1=influxdb, 2=dictionary, 3=both
-        #python3 measure_baseline.py --daq 600 --outloc 2
+        # It collects vdda, idda, vddd, iddd and pedestal for all channels (daq=10min) and runs failure tests
+        # Flag options:
+        # --daq: Duration of data acquisition, in seconds
+        # --outloc: Where do you want to save information? 1=influxdb, 2=dictionary, 3=both
+        # -p, --pathoutfile: Path to where to save the .h5 files and dictionaries
+        # --pacman_tile: List of pacman tiles, from 1-8
+        # --baseline: Path to dictionary file with initial parameters
+        #python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
         echo "Baseline collection script (10 min)"
-
-        # Check for failure
-        #python3 failure_check.py
-        echo -e "Failure check script\n"
 
         sleep 60
 
@@ -95,14 +94,15 @@ while true; do
         echo "Pedestal mode script"
 
         # Run baseline collection script. 
-        # It collects vdda, idda, vddd, iddd and pedestal for all channels (daq=10min)
-        # outloc options: 1=influxdb, 2=dictionary, 3=both
-        #python3 measure_baseline.py --daq 600 --outloc 2
+        # It collects vdda, idda, vddd, iddd and pedestal for all channels (daq=10min) and runs failure tests
+        # Flag options:
+        # --daq: Duration of data acquisition, in seconds
+        # --outloc: Where do you want to save information? 1=influxdb, 2=dictionary, 3=both
+        # -p, --pathoutfile: Path to where to save the .h5 files and dictionaries
+        # --pacman_tile: List of pacman tiles, from 1-8
+        # --baseline: Path to dictionary file with initial parameters
+        #python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
         echo "Baseline collection script (10 min)"
-
-        # Check for failure
-        #python3 failure_check.py
-        echo -e "Failure check script\n"
 
         sleep 60
 
@@ -123,13 +123,16 @@ while true; do
         #python3 network_single_chip_pedestal.py --pacman_tile 1,2,3,4,5,6,7,8
         echo "Pedestal mode script"
 
-        # Run baseline collection script
-        #python3 measure_baseline.py --daq 600 --outloc 2
+        # Run baseline collection script. 
+        # It collects vdda, idda, vddd, iddd and pedestal for all channels (daq=10min) and runs failure tests
+        # Flag options:
+        # --daq: Duration of data acquisition, in seconds
+        # --outloc: Where do you want to save information? 1=influxdb, 2=dictionary, 3=both
+        # -p, --pathoutfile: Path to where to save the .h5 files and dictionaries
+        # --pacman_tile: List of pacman tiles, from 1-8
+        # --baseline: Path to dictionary file with initial parameters
+        #python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
         echo "Baseline collection script (10 min)"
-
-        # Check for failure
-        #python3 failure_check.py
-        echo -e "Failure check script\n"
 
         sleep 60
 
