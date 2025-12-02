@@ -45,7 +45,7 @@ while true; do
 
     # If current time t-t0<10min, run step 1
     # Main check
-    if [[ 10#$time_difference -lt 10.0 ]]; then
+    if [[ 10#$time_difference -lt 10 ]]; then
 
         # If a week has passed since a subdirectory was last created for storing data, create a new one
         week_difference=$((10#$(date +%s) - 10#$w0_s))
@@ -84,7 +84,7 @@ while true; do
 
     # If it has been more than 24 hours since step 1 last ended, run step 1 again
     # Backup check
-    elif [[ 10#$SECONDS -gt 86400.0 ]]; then
+    elif [[ 10#$SECONDS -gt 86400 ]]; then
 
         echo "Collect baseline with nominal voltages"
 
