@@ -1,22 +1,24 @@
 #!/bin/bash
 
-#Start running the script and start counting t0
-#While t-t0<10min: run step 1
-#If t-t0>10min: run step 2
-#Perform failure test after step 1 and 2. This will compare vddd, iddd, vdda, idda and pedestal of the designated baseline file
-#Create a new subdirectory for each week to save data, once it becomes 7 days after initial day
+# This script is inteded to run the longevity test for LArPix chips over the course of 3 months
+# It will run step 1 once a day at the same time, and run step 2 for the rest of the day
+# It will save data in subdirectories created every week
 
 # Set initial day and time t0
 current_day=$(date +%Y-%m-%d)
 current_time=$(date +%H:%M)
 t0=$(date +%H:%M)
 d0=$(date +%Y-%m-%d)
-SECONDS=0
-echo -e "Starting longevity test script.\nCurrent day: $current_day. Current time: $current_time"
 
+# Set the seconds counter to 0 (this will count time since last step 1 execution finished)
+SECONDS=0
+
+# Convert t0 to minutes
 t0_h=${t0:0:2}
 t0_m=${t0:3:2}
 t0_minutes=$((10#$t0_h * 60 + 10#$t0_m))
+
+echo -e "Starting longevity test script.\nCurrent day: $current_day. Current time: $current_time\n"
 echo -e "t0 in minutes: $t0_minutes\n"
 
 # Initial time in seconds for week 0
@@ -24,6 +26,7 @@ w0_s=$(date +%s)
 directory="su_cryolongevity_$(date +%Y-%m-%d)"
 mkdir $directory
 
+# Begin recording data
 while true; do 
 
     current_day=$(date +%Y-%m-%d)
@@ -58,7 +61,7 @@ while true; do
 
         # Set 8 samples to nominal voltage
         #python3 power_on.py --vdda 51851 --pacman_tile 1,2,3,4,5,6,7,8
-        echo "Power on script with nominal voltage"
+        echo "Power on script with nominal voltages"
 
         # Set boards to pedestal mode
         #python3 network_single_chip_pedestal.py --pacman_tile 1,2,3,4,5,6,7,8
@@ -80,14 +83,14 @@ while true; do
         SECONDS=0
 
     # If it has been more than 24 hours since step 1 last ended, run step 1 again
-    # Backup check 86400
+    # Backup check
     elif [[ 10#$SECONDS -gt 86400.0 ]]; then
 
         echo "Collect baseline with nominal voltages"
 
         # Set 8 samples to nominal voltage
         #python3 power_on.py --vdda 51851 --pacman_tile 1,2,3,4,5,6,7,8
-        echo "Power on script with nominal voltage"
+        echo "Power on script with nominal voltages"
 
         # Set boards to pedestal mode
         #python3 network_single_chip_pedestal.py --pacman_tile 1,2,3,4,5,6,7,8
