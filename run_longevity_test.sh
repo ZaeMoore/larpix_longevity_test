@@ -18,8 +18,11 @@ echo -e "Starting longevity test script.\nCurrent day: $current_day. Current tim
 
 t0_h=${t0:0:2}
 t0_m=${t0:3:2}
-t0_minutes=$((10#$t0_h * 60 + 10#$t0_m))
+t0_minutes=$((10#$t0_h * 60.0 + 10#$t0_m))
 echo -e "t0 in minutes: $t0_minutes\n"
+
+w0_s= $(date +%s) #Initial time in seconds for week 0
+#Creat initial subdirectory for week 0
 
 while true; do 
 
@@ -29,7 +32,7 @@ while true; do
 
     current_time_h=${current_time:0:2}
     current_time_m=${current_time:3:2}
-    current_time_minutes=$((10#$current_time_h * 60 + 10#$current_time_m))
+    current_time_minutes=$((10#$current_time_h * 60.0 + 10#$current_time_m))
     echo "Current time in minutes: $current_time_minutes"
 
     time_difference=$((10#$current_time_minutes - 10#$t0_minutes))
@@ -39,7 +42,18 @@ while true; do
 
     # If current time t-t0<10min, run step 1
     # Main check
-    if [[ 10#$time_difference -lt 10 ]]; then
+    if [[ 10#$time_difference -lt 10.0 ]]; then
+
+        #A week in seconds: 604800
+        #When it's been 604800 seconds since initial time, create a new subdirectory for that week
+        #Reset week_0 time (in seconds) to current time
+        #
+        if [[ 10#$(date +%s) - 10#$w0_s -gt 604800.0 ]]; then
+            w0_s=$(date +%s)
+            echo "Creating new subdirectory for the week"
+            mkdir "su_cryolongevity_$(date +%Y-%m-%d)"
+
+        fi
 
         echo "Collect baseline with nominal voltages"
 
@@ -67,7 +81,7 @@ while true; do
 
     # If it has been more than 24 hours since step 1 last ended, run step 1 again
     # Backup check 86400
-    elif [[ 10#$SECONDS -gt 86400 ]]; then
+    elif [[ 10#$SECONDS -gt 86400.0 ]]; then
 
         echo "Collect baseline with nominal voltages"
 
