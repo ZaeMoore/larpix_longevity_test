@@ -18,8 +18,7 @@ t0_h=${t0:0:2}
 t0_m=${t0:3:2}
 t0_minutes=$((10#$t0_h * 60 + 10#$t0_m))
 
-echo -e "Starting longevity test script.\nCurrent day: $current_day. Current time: $current_time\n"
-echo -e "t0 in minutes: $t0_minutes\n"
+echo -e "Starting longevity test script.\nStart day d0 = $current_day. Start time t0 = $current_time\n"
 
 # Initial time in seconds for week 0
 w0_s=$(date +%s)
@@ -31,12 +30,13 @@ while true; do
 
     current_day=$(date +%Y-%m-%d)
     current_time=$(date +%H:%M)
-    echo "Current day: $current_day. Current time: $current_time"
+    echo -e "\n\nCurrent day: $current_day. Current time: $current_time"
 
     current_time_h=${current_time:0:2}
     current_time_m=${current_time:3:2}
     current_time_minutes=$((10#$current_time_h * 60 + 10#$current_time_m))
-    echo "Current time in minutes: $current_time_minutes"
+
+    echo "Step 1 runs at time t0 = $t0"
 
     time_difference=$((10#$current_time_minutes - 10#$t0_minutes))
     echo "Current time - t0 difference in minutes: $time_difference"
@@ -45,7 +45,7 @@ while true; do
 
     # If current time t-t0<10min, run step 1
     # Main check
-    if [[ 10#$time_difference -lt 10 ]]; then
+    if [[ $time_difference -lt 10 ]]; then
 
         # If a week has passed since a subdirectory was last created for storing data, create a new one
         week_difference=$((10#$(date +%s) - 10#$w0_s))
