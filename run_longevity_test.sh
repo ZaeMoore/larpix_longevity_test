@@ -30,7 +30,7 @@ while true; do
 
     current_day=$(date +%Y-%m-%d)
     current_time=$(date +%H:%M)
-    echo -e "\n\nCurrent day: $current_day. Current time: $current_time"
+    echo -e "\n\nCurrent day: $current_day. Current time: $current_time."
 
     current_time_h=${current_time:0:2}
     current_time_m=${current_time:3:2}
