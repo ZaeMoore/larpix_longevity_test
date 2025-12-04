@@ -6,12 +6,13 @@
 # is saved into a dictionary under ../output_data/baseline_YYYY_MM_DD.json
 #
 # How to run:
-# > python3 measure_baseline.py --daq 60 --outloc 3 --pacman_tile 1 2 3 4 5 6 7 8
+# > python3 measure_baseline.py --daq 60 --outloc 3 --pacman_tile 1 2 3 4 5 6 7 8 --out_folder /path/to/folder
 # 
 # Flag options:
 # --daq: Duration of data acquisition, in seconds
 # --outloc: Where do you want to save information? 1=influxdb, 2=dictionary, 3=both
 # --pacman_tile: List of pacman tiles, from 1-8
+# --out_folder: Path to folder to save .h5 files and dictionaries
 
 import larpix
 import larpix.io 
