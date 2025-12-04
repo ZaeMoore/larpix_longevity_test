@@ -45,7 +45,8 @@ while true; do
 
     # If current time t-t0<10min, run step 1
     # Main check
-    if [[ $time_difference -lt 10 ]]; then
+    #if [[ $time_difference -lt 10 ]]; then
+    if [[ $time_difference -lt 10  && $time_difference -gt -1 ]]; then
 
         # If a week has passed since a subdirectory was last created for storing data, create a new one
         week_difference=$((10#$(date +%s) - 10#$w0_s))
