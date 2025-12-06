@@ -6,12 +6,13 @@
 # is saved into a dictionary under ../output_data/baseline_YYYY_MM_DD.json
 #
 # How to run:
-# > python3 measure_baseline.py --daq 60 --outloc 3 --pacman_tile 1 2 3 4 5 6 7 8
+# > python3 measure_baseline.py --daq 60 --outloc 3 --pacman_tile 1 2 3 4 5 6 7 8 --out_folder /path/to/folder
 # 
 # Flag options:
 # --daq: Duration of data acquisition, in seconds
 # --outloc: Where do you want to save information? 1=influxdb, 2=dictionary, 3=both
 # --pacman_tile: List of pacman tiles, from 1-8
+# --out_folder: Path to folder to save .h5 files and dictionaries
 
 import larpix
 import larpix.io 
@@ -41,7 +42,6 @@ def create_dictionary(tile_list):
         dict[f'tile{str(tile)}']['pedestal'] = {}
         dict[f'tile{str(tile)}']['packets'] = {}
     
-    print(dict)
     return dict
 
 if __name__ == '__main__':
@@ -50,6 +50,7 @@ if __name__ == '__main__':
     parser.add_argument('--daq', default=600, type=int, help='Duration of data acquisition, in seconds')
     parser.add_argument('--outloc', type=int, help='Where do you want to save information? 1=influxdb, 2=dictionary, 3=both')
     parser.add_argument('-l', '--pacman_tile', nargs='+', type=int, required=True, help='List of pacman tiles, from 1-8')
+    parser.add_argument('--out_folder', type=str, help='Path to folder to save dictionary and .h5 files')
     args = parser.parse_args()
 
     # Connection to InfluxDB
@@ -60,14 +61,12 @@ if __name__ == '__main__':
     c = larpix.Controller()
     c.io = larpix.io.PACMAN_IO(relaxed=True, asic_version=3)
 
-    # Collect data and save output under ../output_data/packet-YYYY_MM_DD_HH_MM_SS_EDT.h5
-    data(c, args.daq, data_dir='../output_data', tag=None)
+    # Collect data and save output under args.out_folder/packet-YYYY_MM_DD_HH_MM_SS_EDT.h5
+    data(c, args.daq, data_dir=args.out_folder, tag=None)
 
     # Retrieve name of the file just created
-    list_of_files = glob.glob('../output_data/*.h5')
+    list_of_files = glob.glob(f'{args.out_folder}/*.h5')
     latest_file = max(list_of_files, key=os.path.getctime)
-
-    #latest_file = '../output_data/packet-2025_10_10_13_38_43_EDT.h5'
 
     # Open correct information within file
     f = h5py.File(latest_file)
@@ -120,7 +119,7 @@ if __name__ == '__main__':
     if args.outloc == 2 or args.outloc == 3:
         # Save dictionary to a file
         timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-        with open(f'../output_data/baseline_{timestamp}.json', 'w') as f:
+        with open(f'{args.out_folder}/baseline_{timestamp}.json', 'w') as f:
             json.dump(dict, f, indent=4)
 
     # Close InfluxDB client
