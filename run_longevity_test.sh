@@ -45,7 +45,6 @@ while true; do
 
     # If current time t-t0<10min, run step 1
     # Main check
-    #if [[ $time_difference -lt 10 ]]; then
     if [[ $time_difference -lt 10  && $time_difference -gt -1 ]]; then
 
         # If a week has passed since a subdirectory was last created for storing data, create a new one
@@ -61,14 +60,14 @@ while true; do
         echo "Collect baseline with nominal voltages"
 
         # Set 8 samples to nominal voltage
-        #python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243 --vddd 26214
         echo "Power on script with nominal voltages"
+        python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243 --vddd 26214
 
         # Set boards to pedestal mode
-        #python3 network_single_chip_pedestal.py --pacman_tile 1,2,3,4,5,6,7,8
         echo "Pedestal mode script"
+        python3 network_single_chip_pedestal.py --pacman_tile 1,2,3,4,5,6,7,8
 
-        # Run baseline collection script. 
+        # Run baseline collection script
         # It collects vdda, idda, vddd, iddd and pedestal for all channels (daq=10min) and runs failure tests
         # Flag options:
         # --daq: Duration of data acquisition, in seconds
@@ -76,10 +75,8 @@ while true; do
         # -p, --pathoutfile: Path to where to save the .h5 files and dictionaries
         # --pacman_tile: List of pacman tiles, from 1-8
         # --baseline: Path to dictionary file with initial parameters
-        #python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
-        echo "Baseline collection script (10 min)"
-
-        sleep 60
+        echo "Baseline collection script"
+        python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
 
         SECONDS=0
 
@@ -90,14 +87,14 @@ while true; do
         echo "Collect baseline with nominal voltages"
 
         # Set 8 samples to nominal voltage
-        #python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243 --vddd 26214
         echo "Power on script with nominal voltages"
+        python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243 --vddd 26214
 
         # Set boards to pedestal mode
-        #python3 network_single_chip_pedestal.py --pacman_tile 1,2,3,4,5,6,7,8
         echo "Pedestal mode script"
+        python3 network_single_chip_pedestal.py --pacman_tile 1,2,3,4,5,6,7,8
 
-        # Run baseline collection script. 
+        # Run baseline collection script
         # It collects vdda, idda, vddd, iddd and pedestal for all channels (daq=10min) and runs failure tests
         # Flag options:
         # --daq: Duration of data acquisition, in seconds
@@ -105,10 +102,8 @@ while true; do
         # -p, --pathoutfile: Path to where to save the .h5 files and dictionaries
         # --pacman_tile: List of pacman tiles, from 1-8
         # --baseline: Path to dictionary file with initial parameters
-        #python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
-        echo "Baseline collection script (10 min)"
-
-        sleep 60
+        echo "Baseline collection script"
+        python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
 
         SECONDS=0
     
@@ -118,14 +113,14 @@ while true; do
 
         # If current time t-t0>10min, run step 2
         # Set accelerated voltages, tile=1 is used as baseline with nominal voltage
-        #python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243,15729,15729,23593,23593,34079,34079,34079 --vddd 26214,30933,30933,35389,35389,40108,40108,40108
         echo "Power on script with accelerated voltages"
+        python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243,15729,15729,23593,23593,34079,34079,34079 --vddd 26214,30933,30933,35389,35389,40108,40108,40108
 
         # Set boards to pedestal mode
-        #python3 network_single_chip_pedestal.py --pacman_tile 1,2,3,4,5,6,7,8
         echo "Pedestal mode script"
+        python3 network_single_chip_pedestal.py --pacman_tile 1,2,3,4,5,6,7,8
 
-        # Run baseline collection script. 
+        # Run baseline collection script
         # It collects vdda, idda, vddd, iddd and pedestal for all channels (daq=10min) and runs failure tests
         # Flag options:
         # --daq: Duration of data acquisition, in seconds
@@ -133,10 +128,8 @@ while true; do
         # -p, --pathoutfile: Path to where to save the .h5 files and dictionaries
         # --pacman_tile: List of pacman tiles, from 1-8
         # --baseline: Path to dictionary file with initial parameters
-        #python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
-        echo "Baseline collection script (10 min)"
-
-        sleep 60
+        echo "Baseline collection script"
+        python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
 
     fi 
 
