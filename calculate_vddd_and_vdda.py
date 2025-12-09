@@ -1,3 +1,19 @@
+# Author: Marina Reggiani-Guzzo (Syracuse University)
+# Last modified: 9-Dec-2025
+
+# Description: 
+# This script calculates the necessary applied --vdda and --vddd for a desired readout 
+# VDDA and VDDD, which are the values provided by the Berkeley lab team for the test.
+
+# Output:
+# Print statement with the full power_on.py command. This should help avoiding typos
+# when actually running the command on the terminal.
+
+# How to run:
+# > python3 calculate_vddd_and_vdda.py
+
+# Flag options: no flags used.
+
 
 # list of [tile,vdda,vddd]
 list_tiles = [

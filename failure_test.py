@@ -1,14 +1,25 @@
 # Author: Marina Reggiani-Guzzo
 # Last modified: 8-Dec-2025
 #
-# Description: This script performs the failure tests on the information collected
+# Description: 
+# This script performs the failure tests on the information collected
 # from the LArPix boards. It is calculating the percentual value of IDDD, IDDA, VDDD
 # and VDDA in comparison to the baseline collected at the beginning of the longevity
 # test. This percentual value is saved into InfluxDB, that populates our Grafana page.
-#
+
+# Output:
+# - Print statement with array of healthy boards.
+# - InfluxDB is populated with variables used on failure test: percentual difference for 
+# iddd and idda between latest measurement and original baseline, as well as the number
+# of channels per tile with mean v_pedestal outside acceptable range.
+
 # How to run:
 # python3 failure_test.py --baseline /path/to/baseline/dictionary --out_folder /path/to/last/saved/dictionary --pacman_tile 1 2 3 4 5 6 7 8
 
+# Flag options:
+# --baseline: path to baseline dictionary
+# --out_folder: path to folder with latest dictionary saved
+# --pacman_tile: list of pacman tiles (from 1-8)
 
 import argparse
 import json

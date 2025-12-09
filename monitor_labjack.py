@@ -1,3 +1,11 @@
+# Author: Marina Reggiani-Guzzo
+# Last modified: 9-Dec-2025
+
+# Description:
+# Collects the following information from the LabJack and populates InfluxDB with it.
+# - Room temperature and humidity
+# - Cryostat temperature from four probes installed in the cryostat
+# - Cryostat pressure (voltage reading and converted to Torr)
 
 from influxdb_config import token, ORG, url, BUCKET
 import argparse

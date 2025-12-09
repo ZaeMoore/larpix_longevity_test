@@ -1,3 +1,13 @@
+# Author: Marina Reggiani-Guzzo
+# Last modified: 9-Dec-2025
+
+# Description:
+# Collects the following information from the CTC100 and populates InfluxDB with it.
+# - Temperature at the heater
+# - Pressure at the cold head
+# - Voltage applied to the pressure gauge sensor
+# - Power applied to the heater 
+
 from influxdb_config import token, ORG, url, BUCKET
 import argparse
 import influxdb_client, os, time

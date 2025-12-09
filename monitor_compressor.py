@@ -1,3 +1,14 @@
+# Author: Marina Reggiani-Guzzo
+# Last modified: 9-Dec-2025
+
+# Description:
+# Collects the following information from the compressor and populates InfluxDB with it.
+# - Compressor status: string and numerical value (1=Running, 2=Idle)
+# - Water temperature in and out
+# - Low and high pressure
+# - Low and high average pressure
+# - Warning and alarm numbers
+
 import argparse
 
 # InfluxDB
