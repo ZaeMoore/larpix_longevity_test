@@ -78,6 +78,10 @@ while true; do
         echo "Baseline collection script"
         python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
 
+        # Run failure test script
+        echo "Failure test script"
+        python3 failure_test.py --baseline /path/to/initial/baseline/parameters --out_folder /path/to/last/saved/dictionary --pacman_tile 1 2 3 4 5 6 7 8
+
         SECONDS=0
 
     # If it has been more than 24 hours since step 1 last ended, run step 1 again
@@ -105,6 +109,10 @@ while true; do
         echo "Baseline collection script"
         python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
 
+        # Run failure test script
+        echo "Failure test script"
+        python3 failure_test.py --baseline /path/to/initial/baseline/parameters --out_folder /path/to/last/saved/dictionary --pacman_tile 1 2 3 4 5 6 7 8
+
         SECONDS=0
     
     else
@@ -130,6 +138,10 @@ while true; do
         # --baseline: Path to dictionary file with initial parameters
         echo "Baseline collection script"
         python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
+
+        # Run failure test script
+        echo "Failure test script"
+        python3 failure_test.py --baseline /path/to/initial/baseline/parameters --out_folder /path/to/last/saved/dictionary --pacman_tile 1 2 3 4 5 6 7 8
 
     fi 
 
