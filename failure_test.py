@@ -42,6 +42,9 @@ if __name__ == '__main__':
     client = influxdb_client.InfluxDBClient(url=url, token=token, org=ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
 
+    # array with healthy boards
+    healthy_boards = []
+
     for tile in args.pacman_tile:
 
         # retrieve idda
@@ -69,6 +72,7 @@ if __name__ == '__main__':
         idda_perc = (idda1/idda0) * 100
         iddd_perc = (iddd1/iddd0) * 100
 
+        # save information to InfluxDB
         point_pedestal = (Point("pacman_boards").field("failure_pedestal", count_v_pedestal).tag("tile", tile))
         write_api.write(bucket=BUCKET, org=ORG, record=point_pedestal)
 
@@ -78,11 +82,12 @@ if __name__ == '__main__':
         point_iddd = (Point("pacman_boards").field("failure_iddd", iddd_perc).tag("tile", tile))
         write_api.write(bucket=BUCKET, org=ORG, record=point_iddd)
 
-        print(f'\nTile {tile}')
-        print(count_v_pedestal)
-        print(idda_perc)
-        print(iddd_perc)
+        # perform failure test
+        if idda_perc>150 or iddd_perc>150 or count_v_pedestal>6:
+            healthy_boards.append(tile)
         
     # Close InfluxDB client
     client.close()
+
+    print(healthy_boards)
         
