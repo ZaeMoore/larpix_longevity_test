@@ -76,7 +76,7 @@ while true; do
         # --pacman_tile: List of pacman tiles, from 1-8
         # --baseline: Path to dictionary file with initial parameters
         echo "Baseline collection script"
-        python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
+        python3 measure_baseline.py --daq 600 --outloc 3 -out_folder $directory --pacman_tile 1 2 3 4 5 6 7 8
 
         # Run failure test script
         echo "Failure test script"
@@ -107,7 +107,7 @@ while true; do
         # --pacman_tile: List of pacman tiles, from 1-8
         # --baseline: Path to dictionary file with initial parameters
         echo "Baseline collection script"
-        python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
+        python3 measure_baseline.py --daq 600 --outloc 3 -out_folder $directory --pacman_tile 1 2 3 4 5 6 7 8
 
         # Run failure test script
         echo "Failure test script"
@@ -137,7 +137,7 @@ while true; do
         # --pacman_tile: List of pacman tiles, from 1-8
         # --baseline: Path to dictionary file with initial parameters
         echo "Baseline collection script"
-        python3 measure_baseline.py --daq 600 --outloc 3 -p $directory --pacman_tile 1 2 3 4 5 6 7 8 --baseline /path/to/initial/baseline/parameters
+        python3 measure_baseline.py --daq 600 --outloc 3 -out_folder $directory --pacman_tile 1 2 3 4 5 6 7 8
 
         # Run failure test script
         echo "Failure test script"
