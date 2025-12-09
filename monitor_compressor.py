@@ -3,7 +3,7 @@
 
 # Description:
 # Collects the following information from the compressor and populates InfluxDB with it.
-# - Compressor status: string and numerical value (1=Running, 2=Idle)
+# - Compressor status: string and numerical value (1=Running, 0=Otherwise)
 # - Water temperature in and out
 # - Low and high pressure
 # - Low and high average pressure
