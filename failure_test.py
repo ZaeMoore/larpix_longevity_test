@@ -54,7 +54,7 @@ if __name__ == '__main__':
     write_api = client.write_api(write_options=SYNCHRONOUS)
 
     # array with healthy boards
-    healthy_boards = []
+    healthy_boards = ""
 
     for tile in args.pacman_tile:
 
@@ -94,11 +94,13 @@ if __name__ == '__main__':
         write_api.write(bucket=BUCKET, org=ORG, record=point_iddd)
 
         # perform failure test
-        if idda_perc<150 or iddd_perc<150 or count_v_pedestal<6:
-            healthy_boards.append(tile)
+        if idda_perc<150 and iddd_perc<150 and count_v_pedestal<6:
+            healthy_boards = healthy_boards + f"{tile} "
         
     # Close InfluxDB client
     client.close()
 
+    # remove last blank space
+    healthy_boards[:-1]
     print(healthy_boards)
         
