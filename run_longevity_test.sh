@@ -25,6 +25,9 @@ w0_s=$(date +%s)
 directory="su_cryolongevity_$(date +%Y-%m-%d)"
 mkdir $directory
 
+# Dictionary with baseline information. Manually created with the accelerated voltages
+baseline_file="baseline_files/baseline_2025_12_09_10_27_51.json"
+
 # Begin recording data
 while true; do 
 
@@ -80,7 +83,7 @@ while true; do
 
         # Run failure test script
         echo "Failure test script"
-        python3 failure_test.py --baseline /path/to/initial/baseline/parameters --out_folder /path/to/last/saved/dictionary --pacman_tile 1 2 3 4 5 6 7 8
+        python3 failure_test.py --baseline $baseline_file --out_folder $directory --pacman_tile 1 2 3 4 5 6 7 8
 
         SECONDS=0
 
@@ -111,7 +114,7 @@ while true; do
 
         # Run failure test script
         echo "Failure test script"
-        python3 failure_test.py --baseline /path/to/initial/baseline/parameters --out_folder /path/to/last/saved/dictionary --pacman_tile 1 2 3 4 5 6 7 8
+        python3 failure_test.py --baseline $baseline_file --out_folder $directory --pacman_tile 1 2 3 4 5 6 7 8
 
         SECONDS=0
     
@@ -141,7 +144,7 @@ while true; do
 
         # Run failure test script
         echo "Failure test script"
-        python3 failure_test.py --baseline /path/to/initial/baseline/parameters --out_folder /path/to/last/saved/dictionary --pacman_tile 1 2 3 4 5 6 7 8
+        python3 failure_test.py --baseline $baseline_file --out_folder $directory --pacman_tile 1 2 3 4 5 6 7 8
 
     fi 
 
