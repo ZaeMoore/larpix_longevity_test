@@ -3,7 +3,7 @@
 
 # Description:
 # Collects the following information from the compressor and populates InfluxDB with it.
-# - Compressor status: string and numerical value (1=Running, 2=Idle)
+# - Compressor status: string and numerical value (1=Running, 0=Otherwise)
 # - Water temperature in and out
 # - Low and high pressure
 # - Low and high average pressure
@@ -194,6 +194,13 @@ if __name__ == "__main__":
         iPumpState = int.from_bytes(wkrBytes, byteorder='big')
         point = (Point("compressors").field("compressor_state", buildCompressorState(iPumpState)).tag("id", "global"))
         write_api.write(bucket=BUCKET, org=ORG, record=point)
+
+        if buildCompressorState(iPumpState)=="Running":
+            point = (Point("compressors").field("compressor_state_numerical", 1).tag("id", "global"))
+            write_api.write(bucket=BUCKET, org=ORG, record=point)
+        else:
+            point = (Point("compressors").field("compressor_state_numerical", 0).tag("id", "global"))
+            write_api.write(bucket=BUCKET, org=ORG, record=point)
 
         wkrBytes = bytes([rawData[87], rawData[88]])
         iCoolantIn = int.from_bytes(wkrBytes, byteorder='big')
