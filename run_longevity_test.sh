@@ -28,6 +28,21 @@ mkdir $directory
 # Dictionary with baseline information. Manually created with the accelerated voltages
 baseline_file="baseline_files/baseline_2025_12_09_10_27_51.json"
 
+# start the code with full list of tiles, create it only once at the beginning
+healthy_tiles="1 2 3 4 5 6 7 8"
+
+# start longevity test
+
+while True
+
+   # power on healthy tiles
+   power_on_command=$(python3 calculate_power_on_command.py --pacman_tile $healthy_tiles)
+   eval "$power_on_command"
+
+   # perform failure test and update list of tiles
+   healthy_tiles=$(python3 failure_test.py --pacman_tile $healthy_tiles)
+# ------------------------------------------------------------
+
 # Begin recording data
 while true; do 
 
@@ -65,6 +80,10 @@ while true; do
         # Set 8 samples to nominal voltage
         echo "Power on script with nominal voltages"
         python3 power_on.py --pacman_tile 1,2,3,4,5,6,7,8 --vdda 5243 --vddd 26214
+
+        # power on healthy tiles
+        power_on_command=$(python3 calculate_power_on_command.py --pacman_tile $healthy_tiles)
+        eval "$power_on_command"
 
         # Set boards to pedestal mode
         echo "Pedestal mode script"

@@ -14,14 +14,13 @@
 # of channels per tile with mean v_pedestal outside acceptable range.
 
 # How to run:
-# python3 failure_test.py --baseline /path/to/baseline/dictionary --out_folder /path/to/last/saved/dictionary --pacman_tile 1 2 3 4 5 6 7 8
+# python3 failure_test.main(baseline, out_folder, pacman_tile)
 
 # Flag options:
 # --baseline: path to baseline dictionary
 # --out_folder: path to folder with latest dictionary saved
 # --pacman_tile: list of pacman tiles (from 1-8)
 
-import argparse
 import json
 import glob
 
@@ -31,20 +30,15 @@ import influxdb_client, os, time
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--baseline', '-b', type=str, help='Path to dictionary with baseline information')
-    parser.add_argument('--out_folder', type=str, help='Path to folder with .h5 and dictionary files')
-    parser.add_argument('--pacman_tile', nargs='+', type=int, help='List of pacman tiles, from 1-8')
-    args = parser.parse_args()
+def main(baseline_path, out_folder, pacman_tiles):
 
     # open dictionary with original baseline information
-    with open(args.baseline, 'r') as json_file0:
+    with open(baseline_path, 'r') as json_file0:
         dict0 = json.load(json_file0)
 
     # open latest dictionary saved in out_folder
-    list_of_files = glob.glob(f'{args.out_folder}/*.json')
+    list_of_files = glob.glob(f'{out_folder}/*.json')
     latest_file = max(list_of_files, key=os.path.getctime)
     with open(latest_file, 'r') as json_file1:
         dict1 = json.load(json_file1)
@@ -53,10 +47,10 @@ if __name__ == '__main__':
     client = influxdb_client.InfluxDBClient(url=url, token=token, org=ORG)
     write_api = client.write_api(write_options=SYNCHRONOUS)
 
-    # array with healthy boards
-    healthy_boards = ""
+    # Array with status of boards
+    healthy_boards = []
 
-    for tile in args.pacman_tile:
+    for index, tile in enumerate(pacman_tiles):
 
         # retrieve idda
         idda0 = dict0[f'tile{tile}']['idda']
@@ -95,12 +89,10 @@ if __name__ == '__main__':
 
         # perform failure test
         if idda_perc<150 and iddd_perc<150 and count_v_pedestal<6:
-            healthy_boards = healthy_boards + f"{tile} "
+            healthy_boards.append(tile)
         
     # Close InfluxDB client
     client.close()
 
-    # remove last blank space
-    healthy_boards[:-1]
-    print(healthy_boards)
+    return healthy_boards
         

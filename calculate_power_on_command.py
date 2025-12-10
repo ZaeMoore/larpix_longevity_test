@@ -15,13 +15,7 @@
 # Flag options:
 # --healthy: list of healthy tiles as --healthy 1 2 3 4 5
 
-import argparse
-
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--healthy', type=str, help='List of healthy pacman tiles')
-    args = parser.parse_args()
+def main(healthy):
 
     # list of [tile,vdda,vddd]
     list_tiles = [
@@ -35,27 +29,30 @@ if __name__ == '__main__':
         [8, 3.6, 1.73]
     ]
 
-    # ===================================================================
-
     def calc_vddd(VDDD):
         return ((VDDD-0.2)/2.5) * 65536
 
     def calc_vdda(VDDA):
         return ((VDDA-2.3)/2.5) * 65536
 
-    list_tile_number = ''
-    list_vdda = ''
-    list_vddd = ''
+    list_tile_number = []
+    list_vdda = []
+    list_vddd = []
+    string_tile_number = ''
+    string_vdda = ''
+    string_vddd = ''
 
-    for tile_number in args.healthy.split(" "):
-        nentry = int(tile_number) - 1
-        list_tile_number = list_tile_number + f"{list_tiles[nentry][0]}" + ","    
-        list_vdda = list_vdda + f"{calc_vdda(list_tiles[nentry][1]):.0f}" + ","
-        list_vddd = list_vddd + f"{calc_vddd(list_tiles[nentry][2]):.0f}" + ","
+    for index, tile_number in enumerate(healthy):
+        # Array format
+        list_tile_number.append(list_tiles[index][0])
+        list_vdda.append(calc_vdda(list_tiles[index][1]))
+        list_vddd.append(calc_vddd(list_tiles[index][2]))
+        # String format
+        string_tile_number += f'{list_tiles[index][0]},'
+        string_vdda += f'{int(calc_vdda(list_tiles[index][1]))},'
+        string_vddd += f'{int(calc_vddd(list_tiles[index][2]))},'
 
-    # remove last ','
-    list_tile_number = list_tile_number[:-1]
-    list_vdda = list_vdda[:-1]
-    list_vddd = list_vddd[:-1]
+    return string_tile_number[:-1], string_vdda[:-1], string_vddd[:-1]
 
-    print(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda {list_vdda} --vddd {list_vddd}')
+
+    
