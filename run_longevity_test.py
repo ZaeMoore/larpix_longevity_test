@@ -128,7 +128,7 @@ while True:
 
         # Set boards to pedestal mode
         print("Set boards to pedestal mode")
-        run(f'python3 network_single_chip_pedestal.py --pacman_tile {healthy_tiles_str}')
+        run(f'python3 network_single_chip_pedestal.py --pacman_tile {list_tile_number}')
 
         # Run baseline collection script
         # Flag options:
@@ -155,7 +155,7 @@ while True:
         # Calculate power_on.py command for healthy tiles
         print("Power on healthy tiles")
         list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles)
-        run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda {list_vdda} --vddd 26{list_vddd}')
+        run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda {list_vdda} --vddd {list_vddd}')
 
         # Set boards to pedestal mode
         print("Set boards to pedestal mode")
