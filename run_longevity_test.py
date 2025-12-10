@@ -47,7 +47,7 @@ print(f"Starting longevity test script.\nStart day d0 = {current_day}. Start tim
 
 # Initial time in seconds for week 0
 w0_s = int(time.time())
-directory = f"su_cryolongevity_{current_day}"
+directory = f"output_data/su_cryolongevity_{current_day}"
 os.makedirs(directory, exist_ok=True)
 
 baseline_file = "baseline_files/baseline_2025_12_09_10_27_51.json"
@@ -106,7 +106,7 @@ while True:
         # --pacman_tile: List of pacman tiles, from 1-8
         # --out_folder: Path to folder to save .h5 files and dictionaries
         print("Baseline collection script")
-        run(f'python3 measure_baseline.py --daq 600 --outloc 3 --pacman_tile {healthy_tiles_str} -out_folder {directory}')
+        run(f'python3 measure_baseline.py --daq 600 --outloc 3 --pacman_tile {healthy_tiles_str} --out_folder {directory}')
 
         print("Failure test script")
         healthy_tiles = failure_test.main(baseline_file, directory, healthy_tiles)
@@ -137,7 +137,7 @@ while True:
         # --pacman_tile: List of pacman tiles, from 1-8
         # --out_folder: Path to folder to save .h5 files and dictionaries
         print("Baseline collection script")
-        run(f'python3 measure_baseline.py --daq 600 --outloc 3 --pacman_tile {healthy_tiles_str} -out_folder {directory}')
+        run(f'python3 measure_baseline.py --daq 600 --outloc 3 --pacman_tile {healthy_tiles_str} --out_folder {directory}')
 
         print("Failure test script")
         healthy_tiles = failure_test.main(baseline_file, directory, healthy_tiles)
@@ -168,7 +168,7 @@ while True:
         # --pacman_tile: List of pacman tiles, from 1-8
         # --out_folder: Path to folder to save .h5 files and dictionaries
         print("Baseline collection script")
-        run(f'python3 measure_baseline.py --daq 600 --outloc 3 --pacman_tile {healthy_tiles_str} -out_folder {directory}')
+        run(f'python3 measure_baseline.py --daq 600 --outloc 3 --pacman_tile {healthy_tiles_str} --out_folder {directory}')
 
         print("Failure test script")
         healthy_tiles = failure_test.main(baseline_file, directory, healthy_tiles)

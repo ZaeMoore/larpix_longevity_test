@@ -90,6 +90,9 @@ def main(baseline_path, out_folder, pacman_tiles):
         # perform failure test
         if idda_perc<150 and iddd_perc<150 and count_v_pedestal<6:
             healthy_boards.append(tile)
+
+        #else:
+            #run command to power off tile
         
     # Close InfluxDB client
     client.close()
