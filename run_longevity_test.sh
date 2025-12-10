@@ -31,17 +31,6 @@ baseline_file="baseline_files/baseline_2025_12_09_10_27_51.json"
 # start the code with full list of tiles, create it only once at the beginning
 healthy_tiles="1 2 3 4 5 6 7 8"
 
-# start longevity test
-
-while True
-
-   # power on healthy tiles
-   power_on_command=$(python3 calculate_power_on_command.py --pacman_tile $healthy_tiles)
-   eval "$power_on_command"
-
-   # perform failure test and update list of tiles
-   healthy_tiles=$(python3 failure_test.py --pacman_tile $healthy_tiles)
-# ------------------------------------------------------------
 
 # Begin recording data
 while true; do 
@@ -76,6 +65,13 @@ while true; do
         fi
 
         echo "Collect baseline with nominal voltages"
+
+        # power on healthy tiles
+        power_on_command=$(python3 calculate_power_on_command.py --pacman_tile $healthy_tiles)
+        eval "$power_on_command"
+
+        # perform failure test and update list of tiles
+        healthy_tiles=$(python3 failure_test.py --pacman_tile $healthy_tiles)
 
         # Set 8 samples to nominal voltage
         echo "Power on script with nominal voltages"
