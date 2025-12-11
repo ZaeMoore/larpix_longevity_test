@@ -106,13 +106,16 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
         # Update list of healthy tiles at the end of each iteration
         healthy_list = [x for x in healthy_list if x not in dead_tiles]
 
-        # Power off all boards
-        print('python3 power_off.py')
+        # If there was a failure, restart the boards and only power on the healthy ones
+        if readback_failure[0]==True:
 
-        # Power on healthy boards
-        #command_tiles, command_vdda, command_vddd = calculate_power_on_command.main(temp_healthy_tiles)
-        print(f'python3 power_on.py --pacman_tile temp_healthy_tiles --vdda command_vdda --vddd command_vddd')
-        print(f'python3 network_single_chip_pedestal.py --pacman_tile temp_healthy_tiles')
+            # Power off all boards
+            print('python3 power_off.py')
+
+            # Power on healthy boards
+            #command_tiles, command_vdda, command_vddd = calculate_power_on_command.main(healthy_tiles)
+            print(f'python3 power_on.py --pacman_tile {healthy_tiles} --vdda {command_vdda} --vddd {command_vddd}')
+            print(f'python3 network_single_chip_pedestal.py --pacman_tile {healthy_tiles}')
                 
         time.sleep(1) # 60 iterations of 10s = 10 minutes
 
