@@ -2,10 +2,16 @@ import threading
 import time
 import json
 #from run_longevity_test.py import run
-#from influxdb_config import token, ORG, url, BUCKET
-#import influxdb_client, os, time
-#from influxdb_client import InfluxDBClient, Point, WritePrecision
-#from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_config import token, ORG, url, BUCKET
+import influxdb_client, os, time
+from influxdb_client import InfluxDBClient, Point, WritePrecision
+from influxdb_client.client.write_api import SYNCHRONOUS
+
+import larpix
+import larpix.io 
+from util import data, save_controller
+from power_on import power_readback
+
 #import calculate_power_on_command
 
 def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, readback_failure):
@@ -14,7 +20,7 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
     with open(baseline_file, 'r') as json_file:
         dict_B = json.load(json_file)
     vdda_B, idda_B, vddd_B, iddd_B = [], [], [], []
-    for tile in [1,2,3,4]:
+    for tile in [1,2,3,4,5,6,7,8]:
         vdda_B.append(dict_B[f'tile{tile}']['vdda'])
         idda_B.append(dict_B[f'tile{tile}']['idda'])
         vddd_B.append(dict_B[f'tile{tile}']['vddd'])
@@ -37,7 +43,9 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
     dict_readback = {}
 
     # 60 iterations of 10 seconds each
-    for iteration in range(0,4):
+    for iteration in range(0,5):
+
+        print(f'Iteration {iteration}, healthy tiles: {healthy_list}')
 
         # Create sub-dictionary for iteration number
         dict_readback[f'readback{iteration}'] = {}
@@ -73,15 +81,19 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
             for point in [point_vdda, point_idda, point_vddd, point_iddd]:
                 write_api.write(bucket=BUCKET, org=ORG, record=point)
 
+            
             # Perform failure test
-            failure_bool, idda_perc, iddd_perc = readout_failure(vdda_B[tile-1], idda_B[tile-1], vddd_B[tile-1], iddd_B[tile-1], vdda, idda, vddd, iddd)
+            failure_bool, idda_perc, iddd_perc = False, float(200), float(200) # readout_failure(idda_B[tile-1], iddd_B[tile-1], idda, iddd)
+            
             point_idda_perc = (Point("pacman_boards").field("failure_idda", idda_perc).tag("tile", tile))
-            point_iddd_perc = (Point("pacman_boards").field("failure_iddd", iddd_perc).tag("tile", tile))
-            for point in [point_idda_perc, point_iddd_perc]:
-                write_api.write(bucket=BUCKET, org=ORG, record=point)
+            write_api.write(bucket=BUCKET, org=ORG, record=point_idda_perc)
 
+            point_iddd_perc = (Point("pacman_boards").field("failure_iddd", iddd_perc).tag("tile", tile))
+            write_api.write(bucket=BUCKET, org=ORG, record=point_iddd_perc)
+                
+            
             # If failure
-            if tile==1 or tile==7: # if failure_bool==True:
+            if tile==2: #if failure_bool==True:
 
                 # Update list of failures
                 n_failure[tile-1] = n_failure[tile-1] + 1
@@ -101,7 +113,6 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
                 # Update number of failures back to 0
                 n_failure[tile-1] = 0
                 dict_readback[f'readback{iteration}'][f'tile{tile}']['n_failure'] = n_failure[tile-1]
-            
 
         # Update list of healthy tiles at the end of each iteration
         healthy_list = [x for x in healthy_list if x not in dead_tiles]
@@ -113,17 +124,20 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
             print('python3 power_off.py')
 
             # Power on healthy boards
-            #command_tiles, command_vdda, command_vddd = calculate_power_on_command.main(healthy_tiles)
-            print(f'python3 power_on.py --pacman_tile {healthy_tiles} --vdda {command_vdda} --vddd {command_vddd}')
-            print(f'python3 network_single_chip_pedestal.py --pacman_tile {healthy_tiles}')
-                
-        time.sleep(1) # 60 iterations of 10s = 10 minutes
+            command_tiles, command_vdda, command_vddd = healthy_list, 5243, 26214 #calculate_power_on_command.main(healthy_list)
+            print(f'python3 power_on.py --pacman_tile {healthy_list} --vdda {command_vdda} --vddd {command_vddd}')
+            print(f'python3 network_single_chip_pedestal.py --pacman_tile {healthy_list}') 
+
+            # Update failure bool
+            readback_failure[0] = False  
+        
+        time.sleep(1) # 60 iterations of 10s = 10 minutes 
 
     # Update result_container with most up-to-date list of healthy tiles
     for n in range(0,len(healthy_list)):
         result_container.append(healthy_list[n])
 
-    #print(json.dumps(dict_readback, indent=4))
+    print(json.dumps(dict_readback, indent=4))
 
 
 def measure_v_pedestal():
@@ -161,6 +175,6 @@ def main(healthy_boards, baseline_file):
 
 if __name__ == "__main__":
 
-    print('Input healthy tiles: [1]')
-    healthy_tiles = main([1], 'baseline_2025_12_11_12_53_28.json')
+    print('Input healthy tiles: [1,2,3,4]')
+    healthy_tiles = main([1,2,3,4], '../output_data/baseline_2025_12_09_10_27_51.json')
     print(f'Output healthy tiles: {healthy_tiles}')
