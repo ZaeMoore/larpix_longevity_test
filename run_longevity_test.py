@@ -4,6 +4,10 @@ import subprocess
 from datetime import datetime
 import failure_test
 import calculate_power_on_command
+import monitor_larpix_readout
+
+#make sure you're also using a string with commas for power_on and network_single_chip_pedestal commands in your script
+#New measurements script returns healthy tiles as an array
 
 # ------------------------------------------------------------
 # Helper functions
@@ -50,11 +54,13 @@ w0_s = int(time.time())
 directory = f"output_data/su_cryolongevity_{current_day}"
 os.makedirs(directory, exist_ok=True)
 
+# Change to location of your baseline file
 baseline_file = "baseline_files/baseline_2025_12_09_10_27_51.json"
 
 # Running tiles
 healthy_tiles = [1,2,3,4,5,6,7,8]
-healthy_tiles_str = ' '.join(str(tile) for tile in healthy_tiles)
+#healthy_tiles_str = ' '.join(str(tile) for tile in healthy_tiles)
+#healthy_tiles_com = ','.join(str(tile) for tile in healthy_tiles)
 
 # ------------------------------------------------------------
 # Main infinite loop
@@ -91,26 +97,24 @@ while True:
         print("Collecting data with nominal voltages")
 
         # Calculate power_on.py command for healthy tiles
+        # calculate_power_on_command
+        # Input: healthy tiles [array]
+        # Output: list_tile_number, list_vdda, list_vddd [strings with commas]
         print("Power on healthy tiles")
         list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles)
         run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda 5243 --vddd 26214')
 
         # Set boards to pedestal mode
         print("Set boards to pedestal mode")
-        run(f'python3 network_single_chip_pedestal.py --pacman_tile {healthy_tiles_str}')
+        run(f'python3 network_single_chip_pedestal.py --pacman_tile {list_tile_number}')
 
-        # Run baseline collection script
-        # Flag options:
-        # --daq: Duration of data acquisition, in seconds
-        # --outloc: Where do you want to save information? 1=influxdb, 2=dictionary, 3=both
-        # --pacman_tile: List of pacman tiles, from 1-8
-        # --out_folder: Path to folder to save .h5 files and dictionaries
-        print("Baseline collection script")
-        run(f'python3 measure_baseline.py --daq 600 --outloc 3 --pacman_tile {healthy_tiles_str} --out_folder {directory}')
-
-        print("Failure test script")
-        healthy_tiles = failure_test.main(baseline_file, directory, healthy_tiles)
-        healthy_tiles_str = ' '.join(str(tile) for tile in healthy_tiles)
+        # Monitor LArPix readout script
+        # Collects data, checks for failure, and returns healthy tiles
+        # monitor_larpix_readout
+        # Input: healthy tiles [array], baseline_file [string], directory [string]
+        # Output: healthy tiles [array]
+        print("Monitor LArPix readout script")
+        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory)
 
         last_step1_time = time.time()
 
@@ -122,6 +126,9 @@ while True:
         print("Collecting data with nominal voltages")
 
         # Calculate power_on.py command for healthy tiles
+        # calculate_power_on_command
+        # Input: healthy tiles [array]
+        # Output: list_tile_number, list_vdda, list_vddd [strings with commas]
         print("Power on healthy tiles")
         list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles)
         run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda 5243 --vddd 26214')
@@ -130,18 +137,13 @@ while True:
         print("Set boards to pedestal mode")
         run(f'python3 network_single_chip_pedestal.py --pacman_tile {list_tile_number}')
 
-        # Run baseline collection script
-        # Flag options:
-        # --daq: Duration of data acquisition, in seconds
-        # --outloc: Where do you want to save information? 1=influxdb, 2=dictionary, 3=both
-        # --pacman_tile: List of pacman tiles, from 1-8
-        # --out_folder: Path to folder to save .h5 files and dictionaries
-        print("Baseline collection script")
-        run(f'python3 measure_baseline.py --daq 600 --outloc 3 --pacman_tile {healthy_tiles_str} --out_folder {directory}')
-
-        print("Failure test script")
-        healthy_tiles = failure_test.main(baseline_file, directory, healthy_tiles)
-        healthy_tiles_str = ' '.join(str(tile) for tile in healthy_tiles)
+        # Monitor LArPix readout script
+        # Collects data, checks for failure, and returns healthy tiles
+        # monitor_larpix_readout
+        # Input: healthy tiles [array], baseline_file [string], directory [string]
+        # Output: healthy tiles [array]
+        print("Monitor LArPix readout script")
+        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory)
 
         last_step1_time = time.time()
 
@@ -159,20 +161,15 @@ while True:
 
         # Set boards to pedestal mode
         print("Set boards to pedestal mode")
-        run(f'python3 network_single_chip_pedestal.py --pacman_tile {healthy_tiles_str}')
+        run(f'python3 network_single_chip_pedestal.py --pacman_tile {list_tile_number}')
 
-        # Run baseline collection script
-        # Flag options:
-        # --daq: Duration of data acquisition, in seconds
-        # --outloc: Where do you want to save information? 1=influxdb, 2=dictionary, 3=both
-        # --pacman_tile: List of pacman tiles, from 1-8
-        # --out_folder: Path to folder to save .h5 files and dictionaries
-        print("Baseline collection script")
-        run(f'python3 measure_baseline.py --daq 600 --outloc 3 --pacman_tile {healthy_tiles_str} --out_folder {directory}')
-
-        print("Failure test script")
-        healthy_tiles = failure_test.main(baseline_file, directory, healthy_tiles)
-        healthy_tiles_str = ' '.join(str(tile) for tile in healthy_tiles)
+        # Monitor LArPix readout script
+        # Collects data, checks for failure, and returns healthy tiles
+        # monitor_larpix_readout
+        # Input: healthy tiles [array], baseline_file [string], directory [string]
+        # Output: healthy tiles [array]
+        print("Monitor LArPix readout script")
+        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory)
 
         last_step1_time = time.time()
 

@@ -31,71 +31,55 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 
-def main(baseline_path, out_folder, pacman_tiles):
+# Failure test for pedestal  
+# Pass every tile in healthy_tiles array
+# True = Healthy tile, False = Failed tile
+def pedestal_failure(baseline_path, latest_path, healthy_tiles):
+    failure = [True, True, True, True, True, True, True, True]
+    pedestal_count = [0, 0, 0, 0, 0, 0, 0, 0]
 
     # open dictionary with original baseline information
     with open(baseline_path, 'r') as json_file0:
         dict0 = json.load(json_file0)
 
-    # open latest dictionary saved in out_folder
-    list_of_files = glob.glob(f'{out_folder}/*.json')
-    latest_file = max(list_of_files, key=os.path.getctime)
-    with open(latest_file, 'r') as json_file1:
-        dict1 = json.load(json_file1)
+    # open dictionary with original baseline information
+    with open(latest_path, 'r') as json_file0:
+        dict1 = json.load(json_file0)
 
-    # Connection to InfluxDB
-    client = influxdb_client.InfluxDBClient(url=url, token=token, org=ORG)
-    write_api = client.write_api(write_options=SYNCHRONOUS)
+    for index, tile in enumerate(healthy_tiles):
 
-    # Array with status of boards
-    healthy_boards = []
-
-    for index, tile in enumerate(pacman_tiles):
-
-        # retrieve idda
-        idda0 = dict0[f'tile{tile}']['idda']
-        idda1 = dict1[f'tile{tile}']['idda']
-
-        # retrieve iddd
-        iddd0 = dict0[f'tile{tile}']['iddd']
-        iddd1 = dict1[f'tile{tile}']['iddd']
-        
-        # calculate mean pedestal
+        # calculate mean pedestal for initial baseline
         v_mean_pedestal0 = 0
         for ch in range(0,64):
-            v_mean_pedestal0 = v_mean_pedestal0 + (dict0[f'tile{tile}']['pedestal'][f'ch_{ch}']/64)
+            v_mean_pedestal0 = v_mean_pedestal0 + (dict0[f'tile{tile}'][f'channel{ch}']['v_pedestal']/64)
 
         # count number of channels falling outside 50% < v_mean_pedestal0 < 150% range
         # failure happens when count>6
         count_v_pedestal = 0
         for ch in range(0,64):
-            v_pedestal_ch = dict1[f'tile{tile}']['pedestal'][f'ch_{ch}']
+            v_pedestal_ch = dict1[f'tile{tile}'][f'channel{ch}']['v_pedestal']
             if (v_pedestal_ch < (0.5*v_mean_pedestal0)) or (v_pedestal_ch > (1.5*v_mean_pedestal0)):
                 count_v_pedestal = count_v_pedestal + 1
-        
-        # calculate percentage for iddd and idda
-        idda_perc = (idda1/idda0) * 100
-        iddd_perc = (iddd1/iddd0) * 100
 
-        # save information to InfluxDB
-        point_pedestal = (Point("pacman_boards").field("failure_pedestal", count_v_pedestal).tag("tile", tile))
-        write_api.write(bucket=BUCKET, org=ORG, record=point_pedestal)
+        pedestal_count[index] = count_v_pedestal
 
-        point_idda = (Point("pacman_boards").field("failure_idda", idda_perc).tag("tile", tile))
-        write_api.write(bucket=BUCKET, org=ORG, record=point_idda)
+        if count_v_pedestal>6:
+            failure[index] = False
 
-        point_iddd = (Point("pacman_boards").field("failure_iddd", iddd_perc).tag("tile", tile))
-        write_api.write(bucket=BUCKET, org=ORG, record=point_iddd)
+    return failure, pedestal_count
 
-        # perform failure test
-        if idda_perc<150 and iddd_perc<150 and count_v_pedestal<6:
-            healthy_boards.append(tile)
 
-        #else:
-            #run command to power off tile
-        
-    # Close InfluxDB client
-    client.close()
+# Failure test for readout idda and iddd
+# Pass values for one individual tile at a time
+# True = Healthy tile, False = Failed tile
+def readout_failure(idda_baseline, iddd_baseline, idda, iddd):
 
-    return healthy_boards
-        
+    # Calculate percentage for iddd and idda
+    idda_perc = float((idda/idda_baseline) * 100)
+    iddd_perc = float((iddd/iddd_baseline) * 100)
+
+    # Failure test for readout
+    if idda_perc>150 or iddd_perc>150:
+        return False, idda_perc, iddd_perc
+    else:
+        return True, idda_perc, iddd_perc
