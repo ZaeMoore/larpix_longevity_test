@@ -37,12 +37,12 @@ def pedestal_failure(baseline_path, latest_path, healthy_tiles):
     Returns
     -------
     failure : array
-        True for healthy/False for failure for each tile
+        True for failure/False for healthy for each tile
     pedestal_count : array
         Count of channels failing the pedestal test for each tile
     """
 
-    failure = [True, True, True, True, True, True, True, True]
+    failure = [False, False, False, False, False, False, False, False]
     pedestal_count = [0, 0, 0, 0, 0, 0, 0, 0]
 
     # open dictionary with original baseline information
@@ -71,7 +71,7 @@ def pedestal_failure(baseline_path, latest_path, healthy_tiles):
         pedestal_count[index] = count_v_pedestal
 
         if count_v_pedestal>6:
-            failure[index] = False
+            failure[index] = True
 
     return failure, pedestal_count
 
@@ -94,7 +94,7 @@ def readout_failure(idda_baseline, iddd_baseline, idda, iddd):
     Returns
     -------
     failure : bool
-        True for healthy/False for failure
+        True for failure/False for healthy
     idda_perc : float
         Percentual value of IDDA
     iddd_perc : float
@@ -107,6 +107,6 @@ def readout_failure(idda_baseline, iddd_baseline, idda, iddd):
 
     # Failure test for readout
     if idda_perc>150 or iddd_perc>150:
-        return False, idda_perc, iddd_perc
-    else:
         return True, idda_perc, iddd_perc
+    else:
+        return False, idda_perc, iddd_perc
