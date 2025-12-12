@@ -105,6 +105,7 @@ while True:
     # Step 1: If current time t−t0 < 10 min
     # --------------------------------------------------------
     if 0 <= time_difference <= 10:
+        mode = 'nominal'
 
         # If a week has passed, create a new directory
         week_difference = int(time.time()) - w0_s
@@ -131,10 +132,10 @@ while True:
         # Monitor LArPix readout script
         # Collects data, checks for failure, and returns healthy tiles
         # monitor_larpix_readout
-        # Input: healthy tiles [array], baseline_file [string], directory [string]
+        # Input: healthy tiles [array], baseline_file [string], directory [string], mode [string]
         # Output: healthy tiles [array]
         print("Monitor LArPix readout script")
-        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory)
+        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory, mode)
 
         last_step1_time = time.time()
 
@@ -142,6 +143,7 @@ while True:
     # Backup Step 1: If more than 24 hours have passed
     # --------------------------------------------------------
     elif seconds_since_step1 > 86400:
+        mode = 'nominal'
 
         print("Collecting data with nominal voltages")
 
@@ -163,7 +165,7 @@ while True:
         # Input: healthy tiles [array], baseline_file [string], directory [string]
         # Output: healthy tiles [array]
         print("Monitor LArPix readout script")
-        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory)
+        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory, mode)
 
         last_step1_time = time.time()
 
@@ -171,6 +173,7 @@ while True:
     # Step 2: accelerated-voltage baseline collection
     # --------------------------------------------------------
     else:
+        mode = 'accelerated'
 
         print("Collect baseline with accelerated voltages")
 
@@ -189,7 +192,7 @@ while True:
         # Input: healthy tiles [array], baseline_file [string], directory [string]
         # Output: healthy tiles [array]
         print("Monitor LArPix readout script")
-        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory)
+        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory, mode)
 
         last_step1_time = time.time()
 
