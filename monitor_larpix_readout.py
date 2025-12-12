@@ -2,19 +2,18 @@ import threading
 import time
 import json
 #from run_longevity_test.py import run
-from influxdb_config import token, ORG, url, BUCKET
-import influxdb_client, os, time
-from influxdb_client import InfluxDBClient, Point, WritePrecision
-from influxdb_client.client.write_api import SYNCHRONOUS
-
-import larpix
-import larpix.io 
-from util import data, save_controller
-from power_on import power_readback
+#from influxdb_config import token, ORG, url, BUCKET
+#import influxdb_client, os, time
+#from influxdb_client import InfluxDBClient, Point, WritePrecision
+#from influxdb_client.client.write_api import SYNCHRONOUS
+#import larpix
+#import larpix.io 
+#from util import data, save_controller
+#from power_on import power_readback
 
 #import calculate_power_on_command
 
-def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, readback_failure):
+def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, readback_failure, readout_file):
 
     # Retrieve vdda, idda, vddd and iddd for baseline
     with open(baseline_file, 'r') as json_file:
@@ -129,7 +128,7 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
             print(f'python3 network_single_chip_pedestal.py --pacman_tile {healthy_list}') 
 
             # Update failure bool
-            readback_failure[0] = False  
+            readback_failure[0] = False
         
         time.sleep(1) # 60 iterations of 10s = 10 minutes 
 
@@ -137,24 +136,106 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
     for n in range(0,len(healthy_list)):
         result_container.append(healthy_list[n])
 
+    # Save dictionary to file
+    with open(readout_file, 'w') as f:
+            json.dump(dict_readback, f, indent=4)
+
     print(json.dumps(dict_readback, indent=4))
 
+def measure_v_pedestal(healthy_list, pedestal_file, weekly_folder):
 
-def measure_v_pedestal():
+    # DAQ time window, in seconds
+    daq = 600
 
-    for n in range(0,3):
-        #print(f'Pedestal, iteraction #{n}')
-        time.sleep(1)
+    # Create dictionary to save pedestal information
+    dict_pedestal = {}
+    dict_pedestal['timestamp'] = time.time()
 
-def main(healthy_boards, baseline_file):
+    # Connection to InfluxDB
+    #client = influxdb_client.InfluxDBClient(url=url, token=token, org=ORG)
+    #write_api = client.write_api(write_options=SYNCHRONOUS)
+
+    # Load controller
+    #c = larpix.Controller()
+    #c.io = larpix.io.PACMAN_IO(relaxed=True, asic_version=3)
+
+    # Collect data and save output under args.out_folder/packet-YYYY_MM_DD_HH_MM_SS_EDT.h5
+    #data(c, daq, data_dir=weekly_folder, tag=None)
+
+    # Retrieve name of the file just created
+    #list_of_files = glob.glob(f'{args.out_folder}/*.h5')
+    #latest_file = max(list_of_files, key=os.path.getctime)
+
+    # Open correct information within file
+    #f = h5py.File(latest_file)
+    #p = f['packets']
+    #d = p[p['packet_type'] == 1]
+
+    # Loop over healthy tiles and save information to a dictionary
+    for tile in healthy_list:
+
+        # Create sub-dictionary for healthy tiles
+        dict_pedestal[f'tile{tile}'] = {}
+
+        #io_channel = ( int(tile) - 1) * 4 + 1
+        #d_io = d[d['io_channel'] == io_channel]
+
+        for channel_id in range(64):
+
+            # Create sub-sub-dictionary for channels
+            dict_pedestal[f'tile{tile}'][f'channel{channel_id}'] = {}
+
+            #d_channel = d_io[d_io['channel_id'] == channel_id]
+
+            #mean_pedestal = np.mean(d_channel['dataword'])
+            #packets = len(d_channel)
+
+            dict_pedestal[f'tile{tile}'][f'channel{channel_id}']['v_pedestal'] = 1 #mean_pedestal
+            dict_pedestal[f'tile{tile}'][f'channel{channel_id}']['packets'] = 2 #packets
+
+    print(json.dumps(dict_pedestal, indent=4))
+
+    # Save dictionary to file
+    with open(pedestal_file, 'w') as f:
+            json.dump(dict_pedestal, f, indent=4)
+
+
+
+def main(healthy_boards, baseline_file, weekly_folder):
+
+    # Input variables:
+    # > healthy_boards: list of healthy boards by the time function is called, array format = [1,2,3,4]
+    # > baseline_file: full path to dictionary containing baseline information, to be used for failure checks
+    # > weekly_folder: full path to folder created weekly, it will be used to save pedestal_dict, readback_dict and .h5 files
+    #
+    # Description:
+    # This function runs measure_idda_vdda_iddd_vddd() and measure_v_pedestal() in parallel. Once both processes
+    # are complete, if there were no failure for readback variables during the 10-min window time, a failure check
+    # is performed for the pedestal variables. The pedestal failure check is only performed if there was no readback
+    # failure detected because, in case of readback failure, all boards are restarted during the 10-min window, which
+    # impacts the pedestal data collection, and it was decided with Berkeley that in this case we should not perform
+    # a pedestal failure check, just skip it.
+    #
+    # Return:
+    # This function returns an updated list of healthy boards. 
 
     # shared containers
     output_healthy_boards = [] # list of healthy tiles after monitoring readback variables for 10 minutes
     readback_failure = [False] # flag to indicate failure at readback variables, start with False
+
+    # Timestamp used for the file name with readback and pedestal dictionaries. They use the same timestamp to facilitate data matching later
+    timestamp_for_file = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
     
     # create threads
-    t1 = threading.Thread(target=measure_idda_vdda_iddd_vddd, args=(healthy_boards, baseline_file, output_healthy_boards, readback_failure))
-    t2 = threading.Thread(target=measure_v_pedestal, args=())
+    t1 = threading.Thread(target=measure_idda_vdda_iddd_vddd, args=(healthy_boards, 
+                                                                    baseline_file, 
+                                                                    output_healthy_boards, 
+                                                                    readback_failure, 
+                                                                    f'{weekly_folder}/{timestamp_for_file}_readback_dictionary.json'))
+
+    t2 = threading.Thread(target=measure_v_pedestal, args=(healthy_boards, 
+                                                           f'{weekly_folder}/{timestamp_for_file}_pedestal_dictionary.json', 
+                                                           weekly_folder))
 
     # start both at the same time
     t1.start()
@@ -175,6 +256,8 @@ def main(healthy_boards, baseline_file):
 
 if __name__ == "__main__":
 
-    print('Input healthy tiles: [1,2,3,4]')
-    healthy_tiles = main([1,2,3,4], '../output_data/baseline_2025_12_09_10_27_51.json')
-    print(f'Output healthy tiles: {healthy_tiles}')
+    #print('Input healthy tiles: [1,2,3,4]')
+    #healthy_tiles = main([1,2,3,4], '../output_data/baseline_2025_12_09_10_27_51.json')
+    #print(f'Output healthy tiles: {healthy_tiles}')
+
+    measure_v_pedestal([1,2,3,4], 'output_data/pedestal_file.json', '/output_data')
