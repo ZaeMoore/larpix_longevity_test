@@ -1,3 +1,11 @@
+# Author: Zae Moore (Syracuse University)
+# Last modified: 12-Dec-2025
+# 
+# Description:
+# This script runs the longevity test for LArPix boards by alternating between
+# nominal voltage data collection and accelerated-voltage baseline collection.
+# It monitors the health of the boards and adjusts the test parameters accordingly.
+
 import os
 import time
 import subprocess
@@ -5,9 +13,6 @@ from datetime import datetime
 import failure_test
 import calculate_power_on_command
 import monitor_larpix_readout
-
-#make sure you're also using a string with commas for power_on and network_single_chip_pedestal commands in your script
-#New measurements script returns healthy tiles as an array
 
 # ------------------------------------------------------------
 # Helper functions

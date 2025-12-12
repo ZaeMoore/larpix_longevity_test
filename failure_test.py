@@ -1,5 +1,5 @@
-# Author: Marina Reggiani-Guzzo
-# Last modified: 8-Dec-2025
+# Authors: Marina Reggiani-Guzzo, Zae Moore (Syracuse University)
+# Last modified: 12-Dec-2025
 #
 # Description: 
 # This script performs the failure tests on the information collected
@@ -7,19 +7,6 @@
 # and VDDA in comparison to the baseline collected at the beginning of the longevity
 # test. This percentual value is saved into InfluxDB, that populates our Grafana page.
 
-# Output:
-# - Print statement with array of healthy boards.
-# - InfluxDB is populated with variables used on failure test: percentual difference for 
-# iddd and idda between latest measurement and original baseline, as well as the number
-# of channels per tile with mean v_pedestal outside acceptable range.
-
-# How to run:
-# python3 failure_test.main(baseline, out_folder, pacman_tile)
-
-# Flag options:
-# --baseline: path to baseline dictionary
-# --out_folder: path to folder with latest dictionary saved
-# --pacman_tile: list of pacman tiles (from 1-8)
 
 import json
 import glob
@@ -33,7 +20,8 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 
 # Failure test for pedestal  
 # Pass every tile in healthy_tiles array
-# True = Healthy tile, False = Failed tile
+# Input: baseline_path [string], latest_path [string], healthy_tiles [array]
+# Output: True for healthy/False for failure, pedestal_count [array]
 def pedestal_failure(baseline_path, latest_path, healthy_tiles):
     failure = [True, True, True, True, True, True, True, True]
     pedestal_count = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -71,7 +59,8 @@ def pedestal_failure(baseline_path, latest_path, healthy_tiles):
 
 # Failure test for readout idda and iddd
 # Pass values for one individual tile at a time
-# True = Healthy tile, False = Failed tile
+# Input: baseline idda, baseline iddd, current idda, current iddd
+# Output: True for healthy/False for failure, idda percentage, iddd percentage
 def readout_failure(idda_baseline, iddd_baseline, idda, iddd):
 
     # Calculate percentage for iddd and idda
