@@ -1,11 +1,14 @@
-# Author: Zae Moore (Syracuse University)
-# Last modified: 12-Dec-2025
-# 
-# Description:
-# This script runs the longevity test for LArPix boards by alternating between
-# nominal voltage data collection and accelerated-voltage baseline collection.
-# It monitors the health of the boards and adjusts the test parameters accordingly.
+"""
+LarPix Longevity Test Script
+===========================
+Author: Zae Moore (Syracuse University)
+Last modified: 12-Dec-2025
 
+Description:
+This script runs the longevity test for LArPix boards by alternating between
+nominal voltage data collection and accelerated-voltage baseline collection.
+It monitors the health of the boards and adjusts the test parameters accordingly.
+"""
 import os
 import time
 import subprocess
@@ -19,16 +22,28 @@ import monitor_larpix_readout
 # ------------------------------------------------------------
 
 def now_day():
+    """
+    Returns the current day in YYYY-MM-DD format
+    """
     return datetime.now().strftime("%Y-%m-%d")
 
 def now_time():
+    """
+    Returns the current time in HH-MM format
+    """
     return datetime.now().strftime("%H:%M")
 
 def minutes_since_midnight(timestr):
+    """
+    Converts a time string "HH:MM" to minutes since midnight
+    """
     h, m = map(int, timestr.split(":"))
     return h * 60 + m
 
 def run(cmd):
+    """
+    Runs a shell command and checks for errors
+    """
     print("Running:", cmd)
     result = subprocess.run(cmd, shell=True)
     if result.returncode != 0:

@@ -1,12 +1,15 @@
-# Authors: Marina Reggiani-Guzzo, Zae Moore (Syracuse University)
-# Last modified: 12-Dec-2025
-#
-# Description: 
-# This script performs the failure tests on the information collected
-# from the LArPix boards. It is calculating the percentual value of IDDD, IDDA, VDDD
-# and VDDA in comparison to the baseline collected at the beginning of the longevity
-# test. This percentual value is saved into InfluxDB, that populates our Grafana page.
+"""
+Failure tests for LArPix longevity test
+=======================================
+Authors: Marina Reggiani-Guzzo, Zae Moore (Syracuse University)
+Last modified: 12-Dec-2025
 
+Description: 
+This script performs the failure tests on the information collected
+from the LArPix boards. It is calculating the percentual value of IDDD, IDDA, VDDD
+and VDDA in comparison to the baseline collected at the beginning of the longevity
+test. This percentual value is saved into InfluxDB, that populates our Grafana page
+"""
 
 import json
 import glob
@@ -18,11 +21,27 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 
-# Failure test for pedestal  
-# Pass every tile in healthy_tiles array
-# Input: baseline_path [string], latest_path [string], healthy_tiles [array]
-# Output: True for healthy/False for failure, pedestal_count [array]
 def pedestal_failure(baseline_path, latest_path, healthy_tiles):
+    """
+    Failure test for pedestal values
+
+    Parameters
+    ----------
+    baseline_path : str
+        Path to the baseline JSON file
+    latest_path : str
+        Path to the latest JSON file
+    healthy_tiles : array
+        Array of healthy tile numbers
+
+    Returns
+    -------
+    failure : array
+        True for healthy/False for failure for each tile
+    pedestal_count : array
+        Count of channels failing the pedestal test for each tile
+    """
+
     failure = [True, True, True, True, True, True, True, True]
     pedestal_count = [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -57,11 +76,30 @@ def pedestal_failure(baseline_path, latest_path, healthy_tiles):
     return failure, pedestal_count
 
 
-# Failure test for readout idda and iddd
-# Pass values for one individual tile at a time
-# Input: baseline idda, baseline iddd, current idda, current iddd
-# Output: True for healthy/False for failure, idda percentage, iddd percentage
 def readout_failure(idda_baseline, iddd_baseline, idda, iddd):
+    """
+    Failure test for readout values
+
+    Parameters
+    ----------
+    idda_baseline : float
+        Baseline IDDA value
+    iddd_baseline : float
+        Baseline IDDD value
+    idda : float
+        Current IDDA value
+    iddd : float
+        Current IDDD value
+
+    Returns
+    -------
+    failure : bool
+        True for healthy/False for failure
+    idda_perc : float
+        Percentual value of IDDA
+    iddd_perc : float
+        Percentual value of IDDD
+    """
 
     # Calculate percentage for iddd and idda
     idda_perc = float((idda/idda_baseline) * 100)

@@ -1,17 +1,32 @@
-# Author: Marina Reggiani-Guzzo (Syracuse University)
-# Last modified: 9-Dec-2025
+"""
+Calculate power_on.py command for healthy tiles
+==============================================
+Authors: Marina Reggiani-Guzzo, Zae Moore (Syracuse University)
+Last modified: 12-Dec-2025
 
-# Description: 
-# This script calculates the necessary applied --vdda and --vddd for a desired readout 
-# VDDA and VDDD, which are the values provided by the Berkeley lab team for the test.
-
-# Inputs:
-# healthy tiles [array]
-
-# Output:
-# list_tile_number, list_vdda, list_vddd [strings with commas]
+Description:
+This script calculates the necessary applied --vdda and --vddd for a desired readout
+VDDA and VDDD, which are the values provided by the Berkeley lab team for the test
+"""
 
 def main(healthy):
+    """
+    Main function to calculate power_on.py command parameters
+
+    Parameters
+    ----------
+    healthy : array
+        Array of healthy tile numbers
+
+    Returns
+    -------
+    string_tile_number : str
+        Comma-separated string of tile numbers
+    string_vdda : str
+        Comma-separated string of vdda values
+    string_vddd : str
+        Comma-separated string of vddd values
+    """
 
     # list of [tile,vdda,vddd]
     list_tiles = [
