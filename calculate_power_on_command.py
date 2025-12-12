@@ -5,15 +5,11 @@
 # This script calculates the necessary applied --vdda and --vddd for a desired readout 
 # VDDA and VDDD, which are the values provided by the Berkeley lab team for the test.
 
+# Inputs:
+# healthy tiles [array]
+
 # Output:
-# Print statement with the full power_on.py command. This should help avoiding typos
-# when actually running the command on the terminal.
-
-# How to run:
-# > python3 calculate_vddd_and_vdda.py --healthy $healthy_tiles
-
-# Flag options:
-# --healthy: list of healthy tiles as --healthy 1 2 3 4 5
+# list_tile_number, list_vdda, list_vddd [strings with commas]
 
 def main(healthy):
 
