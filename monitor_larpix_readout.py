@@ -122,14 +122,17 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
             print('python3 power_off.py')
 
             # Power on healthy boards
-            command_tiles, command_vdda, command_vddd = healthy_list, 5243, 26214 #calculate_power_on_command.main(healthy_list)
-            print(f'python3 power_on.py --pacman_tile {healthy_list} --vdda {command_vdda} --vddd {command_vddd}')
-            print(f'python3 network_single_chip_pedestal.py --pacman_tile {healthy_list}') 
+            command_tiles, command_vdda, command_vddd = calculate_power_on_command.main(healthy_list) # healthy_list, 5243, 26214
+            command_tiles = command_tiles.replace(" ", ",") 
+            command_vdda = command_vdda.replace(" ", ",")
+            command_vddd = command_vddd.replace(" ", ",")
+            print(f'python3 power_on.py --pacman_tile {command_tiles} --vdda {command_vdda} --vddd {command_vddd}')
+            print(f'python3 network_single_chip_pedestal.py --pacman_tile {command_tiles}') 
 
             # Update failure bool
             readback_failure[0] = False
         
-        time.sleep(1) # 60 iterations of 10s = 10 minutes 
+        time.sleep(10)
 
     # Update result_container with most up-to-date list of healthy tiles
     for n in range(0,len(healthy_list)):
@@ -239,7 +242,7 @@ def main(healthy_boards, baseline_file, weekly_folder):
     # a pedestal failure check, just skip it.
     #
     # Return:
-    # This function returns an updated list of healthy boards. 
+    # This function returns an updated array of healthy boards. 
 
     # shared containers
     output_healthy_boards = [] # list of healthy tiles after monitoring readback variables for 10 minutes
