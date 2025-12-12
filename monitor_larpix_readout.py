@@ -80,7 +80,6 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
             for point in [point_vdda, point_idda, point_vddd, point_iddd]:
                 write_api.write(bucket=BUCKET, org=ORG, record=point)
 
-            
             # Perform failure test
             failure_bool, idda_perc, iddd_perc = False, float(200), float(200) # readout_failure(idda_B[tile-1], iddd_B[tile-1], idda, iddd)
             
@@ -140,36 +139,51 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
     with open(readout_file, 'w') as f:
             json.dump(dict_readback, f, indent=4)
 
-    print(json.dumps(dict_readback, indent=4))
+    #print(json.dumps(dict_readback, indent=4))
 
-def measure_v_pedestal(healthy_list, pedestal_file, weekly_folder):
+    # Close InfluxDB client
+    client.close()
+
+def measure_v_pedestal(healthy_list, pedestal_file):
+
+    # Input variables:
+    # > healthy_list: array of healthy tiles
+    # > pedestal_file: full path to .json file
+    #
+    # Description:
+    # This function reads the v_mean_pedestal and number of packets for all healthy tiles. This information
+    # is first saved into a {weekly_folder}/my_file.h5 file. This file is then read and transformed into a
+    # dictionary saved to the same folder {weekly_folder}. The variables are also saved to InfluxDB.
 
     # DAQ time window, in seconds
     daq = 600
+
+    # Retrieve path of pedestal_file, without file name, to .h5 can be saved there as well
+    weekly_folder = pedestal_file.rsplit('/', 1)[0]
 
     # Create dictionary to save pedestal information
     dict_pedestal = {}
     dict_pedestal['timestamp'] = time.time()
 
     # Connection to InfluxDB
-    #client = influxdb_client.InfluxDBClient(url=url, token=token, org=ORG)
-    #write_api = client.write_api(write_options=SYNCHRONOUS)
+    client = influxdb_client.InfluxDBClient(url=url, token=token, org=ORG)
+    write_api = client.write_api(write_options=SYNCHRONOUS)
 
     # Load controller
-    #c = larpix.Controller()
-    #c.io = larpix.io.PACMAN_IO(relaxed=True, asic_version=3)
+    c = larpix.Controller()
+    c.io = larpix.io.PACMAN_IO(relaxed=True, asic_version=3)
 
     # Collect data and save output under args.out_folder/packet-YYYY_MM_DD_HH_MM_SS_EDT.h5
-    #data(c, daq, data_dir=weekly_folder, tag=None)
+    data(c, daq, data_dir=weekly_folder, tag=None)
 
     # Retrieve name of the file just created
-    #list_of_files = glob.glob(f'{args.out_folder}/*.h5')
-    #latest_file = max(list_of_files, key=os.path.getctime)
+    list_of_files = glob.glob(f'{weekly_folder}/*.h5')
+    latest_file = max(list_of_files, key=os.path.getctime)
 
     # Open correct information within file
-    #f = h5py.File(latest_file)
-    #p = f['packets']
-    #d = p[p['packet_type'] == 1]
+    f = h5py.File(latest_file)
+    p = f['packets']
+    d = p[p['packet_type'] == 1]
 
     # Loop over healthy tiles and save information to a dictionary
     for tile in healthy_list:
@@ -177,29 +191,37 @@ def measure_v_pedestal(healthy_list, pedestal_file, weekly_folder):
         # Create sub-dictionary for healthy tiles
         dict_pedestal[f'tile{tile}'] = {}
 
-        #io_channel = ( int(tile) - 1) * 4 + 1
-        #d_io = d[d['io_channel'] == io_channel]
+        io_channel = ( int(tile) - 1) * 4 + 1
+        d_io = d[d['io_channel'] == io_channel]
 
         for channel_id in range(64):
 
             # Create sub-sub-dictionary for channels
             dict_pedestal[f'tile{tile}'][f'channel{channel_id}'] = {}
 
-            #d_channel = d_io[d_io['channel_id'] == channel_id]
+            d_channel = d_io[d_io['channel_id'] == channel_id]
 
-            #mean_pedestal = np.mean(d_channel['dataword'])
-            #packets = len(d_channel)
+            mean_pedestal = np.mean(d_channel['dataword'])
+            packets = len(d_channel)
 
-            dict_pedestal[f'tile{tile}'][f'channel{channel_id}']['v_pedestal'] = 1 #mean_pedestal
-            dict_pedestal[f'tile{tile}'][f'channel{channel_id}']['packets'] = 2 #packets
+            # Save information to dictionary
+            dict_pedestal[f'tile{tile}'][f'channel{channel_id}']['v_pedestal'] = mean_pedestal
+            dict_pedestal[f'tile{tile}'][f'channel{channel_id}']['packets'] = packets
 
-    print(json.dumps(dict_pedestal, indent=4))
+            # Save information to InfluxDB
+            point = (Point("pacman_boards").field("mean_pedestal", mean_pedestal).tag("tile", tile).tag("channel_id", channel_id))
+            write_api.write(bucket=BUCKET, org=ORG, record=point)
+            point = (Point("pacman_boards").field("packets", packets).tag("tile", tile).tag("channel_id", channel_id))
+            write_api.write(bucket=BUCKET, org=ORG, record=point)
+
+    #print(json.dumps(dict_pedestal, indent=4))
 
     # Save dictionary to file
     with open(pedestal_file, 'w') as f:
             json.dump(dict_pedestal, f, indent=4)
 
-
+    # Close InfluxDB client
+    client.close()
 
 def main(healthy_boards, baseline_file, weekly_folder):
 
@@ -234,8 +256,7 @@ def main(healthy_boards, baseline_file, weekly_folder):
                                                                     f'{weekly_folder}/{timestamp_for_file}_readback_dictionary.json'))
 
     t2 = threading.Thread(target=measure_v_pedestal, args=(healthy_boards, 
-                                                           f'{weekly_folder}/{timestamp_for_file}_pedestal_dictionary.json', 
-                                                           weekly_folder))
+                                                           f'{weekly_folder}/{timestamp_for_file}_pedestal_dictionary.json'))
 
     # start both at the same time
     t1.start()
@@ -260,4 +281,4 @@ if __name__ == "__main__":
     #healthy_tiles = main([1,2,3,4], '../output_data/baseline_2025_12_09_10_27_51.json')
     #print(f'Output healthy tiles: {healthy_tiles}')
 
-    measure_v_pedestal([1,2,3,4], 'output_data/pedestal_file.json', '/output_data')
+    measure_v_pedestal([1,2,3,4], '../output_data/pedestal_file.json', '../output_data')
