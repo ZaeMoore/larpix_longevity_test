@@ -13,7 +13,6 @@ import os
 import time
 import subprocess
 from datetime import datetime
-import failure_test
 import calculate_power_on_command
 import monitor_larpix_readout
 
@@ -75,12 +74,11 @@ directory = f"output_data/su_cryolongevity_{current_day}"
 os.makedirs(directory, exist_ok=True)
 
 # Change to location of your baseline file
-baseline_file = "baseline_files/baseline_2025_12_09_10_27_51.json"
+baseline_file_nominal = "output_longevity/.json"
+baseline_file_accelerated = "output_longevity/.json"
 
 # Running tiles
 healthy_tiles = [1,2,3,4,5,6,7,8]
-#healthy_tiles_str = ' '.join(str(tile) for tile in healthy_tiles)
-#healthy_tiles_com = ','.join(str(tile) for tile in healthy_tiles)
 
 # ------------------------------------------------------------
 # Main infinite loop
@@ -107,7 +105,7 @@ while True:
     if 0 <= time_difference <= 10:
         mode = 'nominal'
 
-        # If a week has passed, create a new directory
+        # If a week has passed, create a new directory and backup influxdb files
         week_difference = int(time.time()) - w0_s
         if week_difference > 604800:  # 7 days
             w0_s = int(time.time())
@@ -115,10 +113,13 @@ while True:
             directory = f"su_cryolongevity_{current_day}"
             os.makedirs(directory, exist_ok=True)
 
+            # Backup influxdb files
+            print("Backing up influxdb files")
+
         print("Collecting data with nominal voltages")
 
         # Calculate power_on.py command for healthy tiles
-        # calculate_power_on_command
+        # calculate_power_on_command.py
         # Input: healthy tiles [array]
         # Output: list_tile_number, list_vdda, list_vddd [strings with commas]
         print("Power on healthy tiles")
@@ -126,6 +127,8 @@ while True:
         run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda 5243 --vddd 26214')
 
         # Set boards to pedestal mode
+        # network_single_chip_pedestal.py
+        # Input: list_tile_number [string with commas]
         print("Set boards to pedestal mode")
         run(f'python3 network_single_chip_pedestal.py --pacman_tile {list_tile_number}')
 
@@ -135,7 +138,7 @@ while True:
         # Input: healthy tiles [array], baseline_file [string], directory [string], mode [string]
         # Output: healthy tiles [array]
         print("Monitor LArPix readout script")
-        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory, mode)
+        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file_nominal, directory, mode)
 
         last_step1_time = time.time()
 
@@ -156,6 +159,8 @@ while True:
         run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda 5243 --vddd 26214')
 
         # Set boards to pedestal mode
+        # network_single_chip_pedestal.py
+        # Input: list_tile_number [string with commas]
         print("Set boards to pedestal mode")
         run(f'python3 network_single_chip_pedestal.py --pacman_tile {list_tile_number}')
 
@@ -165,7 +170,7 @@ while True:
         # Input: healthy tiles [array], baseline_file [string], directory [string]
         # Output: healthy tiles [array]
         print("Monitor LArPix readout script")
-        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory, mode)
+        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file_nominal, directory, mode)
 
         last_step1_time = time.time()
 
@@ -178,11 +183,16 @@ while True:
         print("Collect baseline with accelerated voltages")
 
         # Calculate power_on.py command for healthy tiles
+        # calculate_power_on_command
+        # Input: healthy tiles [array]
+        # Output: list_tile_number, list_vdda, list_vddd [strings with commas]
         print("Power on healthy tiles")
         list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles)
         run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda {list_vdda} --vddd {list_vddd}')
 
         # Set boards to pedestal mode
+        # network_single_chip_pedestal.py
+        # Input: list_tile_number [string with commas]
         print("Set boards to pedestal mode")
         run(f'python3 network_single_chip_pedestal.py --pacman_tile {list_tile_number}')
 
@@ -192,7 +202,7 @@ while True:
         # Input: healthy tiles [array], baseline_file [string], directory [string]
         # Output: healthy tiles [array]
         print("Monitor LArPix readout script")
-        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file, directory, mode)
+        healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file_accelerated, directory, mode)
 
         last_step1_time = time.time()
 
