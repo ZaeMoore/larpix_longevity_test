@@ -53,12 +53,12 @@ def pedestal_failure(baseline_path, latest_path, healthy_tiles):
     with open(latest_path, 'r') as json_file0:
         dict1 = json.load(json_file0)
 
-    for index, tile in enumerate(healthy_tiles):
+    for tile in healthy_tiles:
 
         # calculate mean pedestal for initial baseline
         v_mean_pedestal0 = 0
         for ch in range(0,64):
-            v_mean_pedestal0 = v_mean_pedestal0 + (dict0[f'tile{tile}'][f'channel{ch}']['v_pedestal']/64)
+            v_mean_pedestal0 = v_mean_pedestal0 + (dict0[f'tile{tile}']['pedestal'][f'channel{ch}']/64)
 
         # count number of channels falling outside 50% < v_mean_pedestal0 < 150% range
         # failure happens when count>6
@@ -68,10 +68,10 @@ def pedestal_failure(baseline_path, latest_path, healthy_tiles):
             if (v_pedestal_ch < (0.5*v_mean_pedestal0)) or (v_pedestal_ch > (1.5*v_mean_pedestal0)):
                 count_v_pedestal = count_v_pedestal + 1
 
-        pedestal_count[index] = count_v_pedestal
+        pedestal_count[tile-1] = count_v_pedestal
 
         if count_v_pedestal>6:
-            failure[index] = True
+            failure[tile-1] = True
 
     return failure, pedestal_count
 

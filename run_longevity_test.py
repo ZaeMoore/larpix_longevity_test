@@ -70,12 +70,13 @@ print(f"Starting longevity test script.\nStart day d0 = {current_day}. Start tim
 
 # Initial time in seconds for week 0
 w0_s = int(time.time())
+w0_backup = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 directory = f"output_data/su_cryolongevity_{current_day}"
 os.makedirs(directory, exist_ok=True)
 
 # Change to location of your baseline file
-baseline_file_nominal = "output_longevity/.json"
-baseline_file_accelerated = "output_longevity/.json"
+baseline_file_nominal = "output_longevity/baseline_nominal_voltage.json"
+baseline_file_accelerated = "output_longevity/baseline_accelerated_voltage.json"
 
 # Running tiles
 healthy_tiles = [1,2,3,4,5,6,7,8]
@@ -114,6 +115,12 @@ while True:
             os.makedirs(directory, exist_ok=True)
 
             # Backup influxdb files
+            w0_backup_old = w0_backup
+            w0_backup = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            #influxd backup -portable \
+            #  -start {w0_backup_old} \
+            #  -stop {w0_backup} \
+            #  /path/to/backup/directory
             print("Backing up influxdb files")
 
         print("Collecting data with nominal voltages")
@@ -123,7 +130,7 @@ while True:
         # Input: healthy tiles [array]
         # Output: list_tile_number, list_vdda, list_vddd [strings with commas]
         print("Power on healthy tiles")
-        list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles)
+        list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles, mode)
         run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda 5243 --vddd 26214')
 
         # Set boards to pedestal mode
@@ -155,7 +162,7 @@ while True:
         # Input: healthy tiles [array]
         # Output: list_tile_number, list_vdda, list_vddd [strings with commas]
         print("Power on healthy tiles")
-        list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles)
+        list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles, mode)
         run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda 5243 --vddd 26214')
 
         # Set boards to pedestal mode
@@ -187,7 +194,7 @@ while True:
         # Input: healthy tiles [array]
         # Output: list_tile_number, list_vdda, list_vddd [strings with commas]
         print("Power on healthy tiles")
-        list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles)
+        list_tile_number, list_vdda, list_vddd = calculate_power_on_command.main(healthy_tiles, mode)
         run(f'python3 power_on.py --pacman_tile {list_tile_number} --vdda {list_vdda} --vddd {list_vddd}')
 
         # Set boards to pedestal mode
@@ -203,8 +210,6 @@ while True:
         # Output: healthy tiles [array]
         print("Monitor LArPix readout script")
         healthy_tiles = monitor_larpix_readout.main(healthy_tiles, baseline_file_accelerated, directory, mode)
-
-        last_step1_time = time.time()
 
     # Sleep a bit to avoid hammering system when testing script
     # time.sleep(60)

@@ -172,7 +172,7 @@ if __name__ == "__main__":
     parser.add_argument('--sleeptime', default=10, type=int, help='Time interval in between daq')
     args = parser.parse_args()
 
-    HOST = '10.42.0.119'
+    HOST = '10.42.1.119'
     HOST = HOST.strip()
     PORT = 502
 

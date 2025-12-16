@@ -4,7 +4,8 @@ import json
 import glob
 import h5py
 import numpy as np
-import run_longevity_test
+from datetime import datetime
+import subprocess
 from influxdb_config import token, ORG, url, BUCKET
 import influxdb_client, os, time
 from influxdb_client import InfluxDBClient, Point, WritePrecision
@@ -16,6 +17,16 @@ from power_on import power_readback
 import calculate_power_on_command
 import failure_test
 
+def run(cmd):
+    """
+    Runs a shell command and checks for errors
+    """
+    print("Running:", cmd)
+    result = subprocess.run(cmd, shell=True)
+    if result.returncode != 0:
+        print(f"Command failed: {cmd}")
+    return result.returncode
+
 def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, readback_failure, readout_file, v_mode):
 
     print('[Readback] Starting')
@@ -26,7 +37,7 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
     with open(baseline_file, 'r') as json_file:
         dict_B = json.load(json_file)
     vdda_B, idda_B, vddd_B, iddd_B = [], [], [], []
-    for tile in [1,2,3,4,5,6,7,8]:
+    for tile in healthy_list:
         vdda_B.append(dict_B[f'tile{tile}']['vdda'])
         idda_B.append(dict_B[f'tile{tile}']['idda'])
         vddd_B.append(dict_B[f'tile{tile}']['vddd'])
@@ -48,8 +59,8 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
     # Create dictionary for output reading
     dict_readback = {}
 
-    # 60 iterations of 10 seconds each
-    for iteration in range(0,60):
+    # 35 iterations of 10 seconds each
+    for iteration in range(0,35):
 
         print(f'Iteration {iteration}, healthy tiles: {healthy_list}')
 
@@ -90,7 +101,7 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
                 write_api.write(bucket=BUCKET, org=ORG, record=point)
 
             # Perform failure test
-            failure_bool, idda_perc, iddd_perc = failure_test.readout_failure(idda_B[tile-1], iddd_B[tile-1], idda, iddd)
+            failure_bool, idda_perc, iddd_perc = failure_test.readout_failure(dict_B[f'tile{tile}']['idda'], dict_B[f'tile{tile}']['iddd'], idda, iddd)
             
             point_idda_perc = (Point("pacman_boards").field("failure_idda", idda_perc).tag("tile", tile))
             write_api.write(bucket=BUCKET, org=ORG, record=point_idda_perc)
@@ -129,17 +140,15 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
         if local_failure_bool==True:
 
             # Power off all boards
-            run_longevity_test.run('python3 power_off.py')
+            run('python3 power_off.py')
 
             # Power on healthy boards
-            command_tiles, command_vdda, command_vddd = calculate_power_on_command.main(healthy_list, v_mode) # healthy_list, 5243, 26214
-            run_longevity_test.run(f'python3 power_on.py --pacman_tile {command_tiles} --vdda {command_vdda} --vddd {command_vddd}')
-            run_longevity_test.run(f'python3 network_single_chip_pedestal.py --pacman_tile {command_tiles}') 
+            command_tiles, command_vdda, command_vddd = calculate_power_on_command.main(healthy_list, v_mode) 
+            run(f'python3 power_on.py --pacman_tile {command_tiles} --vdda {command_vdda} --vddd {command_vddd}')
+            run(f'python3 network_single_chip_pedestal.py --pacman_tile {command_tiles}') 
 
             # Update failure bool
             local_failure_bool = False
-        
-        time.sleep(10)
 
     # Update result_container with most up-to-date list of healthy tiles
     for n in range(0,len(healthy_list)):
@@ -148,8 +157,6 @@ def measure_idda_vdda_iddd_vddd(healthy_list, baseline_file, result_container, r
     # Save dictionary to file
     with open(readout_file, 'w') as f:
             json.dump(dict_readback, f, indent=4)
-
-    #print(json.dumps(dict_readback, indent=4))
 
     # Close InfluxDB client
     client.close()
@@ -202,6 +209,8 @@ def measure_v_pedestal(healthy_list, pedestal_file):
     # Loop over healthy tiles and save information to a dictionary
     for tile in healthy_list:
 
+        print(f'[Pedestal] Looping over healthy tiles. Tile {tile}')
+
         # Create sub-dictionary for healthy tiles
         dict_pedestal[f'tile{tile}'] = {}
 
@@ -228,8 +237,6 @@ def measure_v_pedestal(healthy_list, pedestal_file):
             point = (Point("pacman_boards").field("packets", packets).tag("tile", tile).tag("channel_id", channel_id))
             write_api.write(bucket=BUCKET, org=ORG, record=point)
 
-    #print(json.dumps(dict_pedestal, indent=4))
-
     # Save dictionary to file
     with open(pedestal_file, 'w') as f:
             json.dump(dict_pedestal, f, indent=4)
@@ -238,7 +245,7 @@ def measure_v_pedestal(healthy_list, pedestal_file):
     # Close InfluxDB client
     client.close()
 
-def main(healthy_boards, baseline_file, weekly_folder):
+def main(healthy_boards, baseline_file, weekly_folder, v_mode):
 
     # Input variables:
     # > healthy_boards: list of healthy boards by the time function is called, array format = [1,2,3,4]
@@ -268,7 +275,8 @@ def main(healthy_boards, baseline_file, weekly_folder):
                                                                     baseline_file, 
                                                                     output_healthy_boards, 
                                                                     readback_failure, 
-                                                                    f'{weekly_folder}/{timestamp_for_file}_readback_dictionary.json'))
+                                                                    f'{weekly_folder}/{timestamp_for_file}_readback_dictionary.json',
+                                                                    v_mode))
 
     t2 = threading.Thread(target=measure_v_pedestal, args=(healthy_boards, 
                                                            f'{weekly_folder}/{timestamp_for_file}_pedestal_dictionary.json'))
@@ -287,5 +295,15 @@ def main(healthy_boards, baseline_file, weekly_folder):
     else:
         # Perform failure check for v_pedestal
         print('No readback failure. Perform failure test for v_pedestal!')
+        _f_, _c_ = failure_test.pedestal_failure(baseline_file, f'{weekly_folder}/{timestamp_for_file}_pedestal_dictionary.json',
+                                                 output_healthy_boards)
+
+        #Connect to InfluxDB
+        client = influxdb_client.InfluxDBClient(url=url, token=token, org=ORG)
+        write_api = client.write_api(write_options=SYNCHRONOUS)
+        for tile in output_healthy_boards:
+            point_pedestal = (Point("pacman_boards").field("failure_pedestal", _c_[tile-1]).tag("tile", tile))
+            write_api.write(bucket=BUCKET, org=ORG, record=point_pedestal)
+        client.close()
 
     return output_healthy_boards
